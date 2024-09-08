@@ -1,6 +1,6 @@
-from models import *
+from crm_project.models import *
 from datetime import datetime
-from project.permissions import *
+from crm_project.project.permissions import *
 
 
 class SupportController:

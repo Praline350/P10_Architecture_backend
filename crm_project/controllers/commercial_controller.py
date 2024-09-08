@@ -1,7 +1,7 @@
-from models import *
+from crm_project.models import *
 from datetime import datetime
-from project.permissions import *
-from helpers.get_data import *
+from crm_project.project.permissions import *
+from crm_project.helpers.get_data import *
 
 
 class CommercialController:

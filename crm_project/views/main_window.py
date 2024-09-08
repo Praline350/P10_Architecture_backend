@@ -1,6 +1,6 @@
 import sys
 
-from helpers.get_data import *
+from crm_project.helpers.get_data import *
 
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QIcon, QAction, Qt

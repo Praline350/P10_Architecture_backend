@@ -1,10 +1,10 @@
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-from models import *
+from crm_project.models import *
 
-from views import *
-from views.admin_view import AdminView
-from controllers import *
+from crm_project.views import *
+from crm_project.views.admin_view import AdminView
+from crm_project.controllers import *
 
 class AuthenticationController:
     def __init__(self, session ,main_window):
@@ -52,8 +52,10 @@ class AuthenticationController:
                 self.main_window.menuBar().show()
                 self.main_window.setCentralWidget(frame)
                 print("Frame shown successfully.")
+                return True
             else:
                 print(f"No frame found for role: {role_name}")
+                return False
 
 
     def show_login_view(self):

@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
-from views import *
-from helpers.get_data import *
+from crm_project.views import *
+from crm_project.helpers.get_data import *
 from PySide6.QtCore import Qt 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout ,QComboBox, QLineEdit, QMessageBox, QDialog, QFormLayout, QDialogButtonBox, QGridLayout,QSpacerItem, QSizePolicy, QFormLayout
 
@@ -146,7 +146,7 @@ class ManagementView(QWidget):
         dialog.exec()
 
 
-    def create_user(self,dialog, **user_data):
+    def create_user(self, dialog, **user_data):
         """
         Crée un contrat avec les données fournies.
         """
@@ -160,7 +160,7 @@ class ManagementView(QWidget):
 
 
 
-    def create_contract(self,dialog, customer, **contract_data):
+    def create_contract(self, dialog, customer, **contract_data):
         """
         Crée un contrat avec les données fournies.
         """

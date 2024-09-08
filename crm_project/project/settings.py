@@ -5,9 +5,33 @@ from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 
-from project.config import engine, Base, SessionLocal
-from models import *
-from controllers import *
+from crm_project.project.config import engine, Base, SessionLocal
+from crm_project.models import *
+from crm_project.controllers import *
+
+def run_coverage(test_path=None):
+    """Exécuter les tests avec coverage."""
+    # Ajouter crm_project au PYTHONPATH
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    crm_project_path = os.path.join(project_root, 'crm_project')
+
+    if crm_project_path not in sys.path:
+        sys.path.insert(0, crm_project_path)
+
+    if test_path:
+        # Si un chemin de tests est fourni, exécute les tests sur ce chemin
+        if os.path.isdir(test_path):
+            test_command = ["coverage", "run", "--source=crm_project", "-m", "unittest", "discover", "-s", test_path]
+        else:
+            test_command = ["coverage", "run", "--source=crm_project", "-m", "unittest", test_path]
+    else:
+        # Si aucun chemin n'est spécifié, exécuter tous les tests
+        test_dir = os.path.join(project_root, 'crm_project', 'tests')
+        test_command = ["coverage", "run", "--source=crm_project", "-m", "unittest", "discover", "-s", test_dir]
+
+    subprocess.run(test_command)
+    subprocess.run(["coverage", "report"])  # Générer le rapport dans le terminal
+    subprocess.run(["coverage", "html"])  # Générer un rapport HTML
 
 
 def run_tests(test_path=None):

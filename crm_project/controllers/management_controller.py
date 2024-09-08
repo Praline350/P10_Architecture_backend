@@ -1,8 +1,8 @@
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-from models import *
+from crm_project.models import *
 from datetime import datetime
-from project.permissions import *
+from crm_project.project.permissions import *
 
 
 class ManagementController:
@@ -27,8 +27,7 @@ class ManagementController:
         return new_contract
     
     @require_permission('create_user')
-    def create_user(self, **user_data):
-        print(user_data)
+    def create_user(self,**user_data):
         try:
             username = f"{user_data['first_name']}.{user_data['last_name']}"
             role = self.session.query(Role).filter_by(name=user_data['role']).one()

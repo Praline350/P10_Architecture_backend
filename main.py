@@ -4,9 +4,9 @@ import os
 import tkinter as tk
 
 
-from project.config import SessionLocal
-from controllers.authentication_controller import *
-from views.main_window import MainWindow
+from crm_project.project.config import SessionLocal
+from crm_project.controllers.authentication_controller import *
+from crm_project.views.main_window import MainWindow
 from PySide6.QtWidgets import QApplication
 
 
@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     # Obtenir le chemin absolu du fichier style.qss
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    qss_file = os.path.join(current_dir, "styles/main_style.qss")
+    qss_file = os.path.join(current_dir, "crm_project/styles/main_style.qss")
     
     # Charger et appliquer le QSS
     stylesheet = load_stylesheet(qss_file)

@@ -4,8 +4,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mysql import CHAR
 from sqlalchemy import event
 from datetime import datetime, timezone
-from project.config import Base
-from models.mixin_model import BaseModelMixin
+from crm_project.project.config import Base
+from crm_project.models.mixin_model import BaseModelMixin
 
 
 # Modèle Contract

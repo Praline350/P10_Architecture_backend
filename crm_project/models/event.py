@@ -2,8 +2,8 @@ from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mysql import CHAR
 
-from project.config import Base
-from models.mixin_model import BaseModelMixin
+from crm_project.project.config import Base
+from crm_project.models.mixin_model import BaseModelMixin
 
 # Modèle Event
 class Event(Base, BaseModelMixin):

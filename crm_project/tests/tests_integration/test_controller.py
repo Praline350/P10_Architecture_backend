@@ -1,12 +1,26 @@
-from controllers import *
-from controllers.authentication_controller import *
-from models import *
-from tests.tests_unit.base_test_class import *
+from crm_project.controllers import *
+from crm_project.controllers.authentication_controller import *
+from crm_project.models import *
+from crm_project.tests.tests_integration.base_integration_test import *
 
-class TestLoginController(BaseTest):
+class TestLoginController(BaseIntegrationTest):
     def setUp(self):
         super().setUp()
         self.controller = AuthenticationController(self.session, self.root)
+
+        # Simuler une vue et un contrôleur en tant que classes
+        self.view_class_mock = Mock()  
+        self.controller_class_mock = Mock() 
+        # Simuler l'instance du contrôleur et la vue 
+        self.controller_instance_mock = Mock()
+        self.controller_class_mock.return_value = self.controller_instance_mock
+        self.view_instance_mock = Mock()
+        self.view_class_mock.return_value = self.view_instance_mock
+
+        self.controller.view_mapping = {
+            'COMMERCIAL': (self.view_class_mock, self.controller_class_mock),
+            'ADMIN': (self.view_class_mock, self.controller_class_mock)
+        }
 
 
 
@@ -35,8 +49,33 @@ class TestLoginController(BaseTest):
         user = self.controller.login("nonexistent", 999, "doesntmatter")
         self.assertIsNone(user)
 
+    def test_get_view_for_valid_role(self):
+        # Appeler la méthode avec un rôle valide
+        view_instance = self.controller.get_view_for_role('ADMIN')
+        self.controller_class_mock.assert_called_once_with(self.controller.session, self.controller.authenticated_user, self.controller)
+        self.view_class_mock.assert_called_once_with(self.controller.main_window, self.controller_instance_mock)
 
-class TestCommercialController(BaseTest):
+        # Vérifier que la méthode retourne bien l'instance de la vue
+        self.assertEqual(view_instance, self.view_instance_mock)
+
+    def test_get_view_for_invalid_role(self):
+        # Test pour un rôle invalide
+        view_instance = self.controller.get_view_for_role('INVALID_ROLE')
+        self.controller_class_mock.assert_not_called()
+        self.view_class_mock.assert_not_called()
+        self.assertIsNone(view_instance)
+    
+    def test_show_frame_with_valid_role(self):
+        # Appeler show_frame avec un utilisateur ayant un rôle valide
+        self.controller.login_view = Mock()
+        self.frame_mock = Mock()
+        self.controller.get_view_for_role = Mock(return_value=self.frame_mock)
+        result = self.controller.show_frame(self.user_mock)
+        self.controller.get_view_for_role.assert_called_once_with('ADMIN')
+        self.assertEqual(result, True)
+
+
+class TestCommercialController(BaseIntegrationTest):
     """With permissions"""
 
     def setUp(self):
@@ -74,7 +113,7 @@ class TestCommercialController(BaseTest):
         self.assertEqual(updated_customer.company_name, updated_data['company_name'])
 
 
-class TestCommercialPermissionController(BaseTest):
+class TestCommercialPermissionController(BaseIntegrationTest):
     """Without permissions"""
 
     def setUp(self):
@@ -90,14 +129,14 @@ class TestCommercialPermissionController(BaseTest):
             self.controller.create_customer(**self.customer_data)
 
 
-class TestManagementController(BaseTest):
+class TestManagementController(BaseIntegrationTest):
     """with permission"""
 
     def setUp(self):
         super().setUp()
         self.login_controller = AuthenticationController(self.session, self.root)
-        self.admin = self.session.query(Role).filter_by(name=RoleName.ADMIN.value).first()
-        self.user = self.login_controller.create_user(role=self.admin, **self.user_data)
+        self.admin_role = self.session.query(Role).filter_by(name=RoleName.ADMIN.value).first()
+        self.user = self.login_controller.create_user(role=self.admin_role, **self.user_data)
         self.controller = CommercialController(self.session, self.user, self.login_controller)
         self.customer = self.controller.create_customer(**self.customer_data)
         self.management_controller = ManagementController(self.session, self.user, self.login_controller)
@@ -117,6 +156,24 @@ class TestManagementController(BaseTest):
         updated_contract = self.controller.update_contract(self.customer.id, new_contract.id, **updated_data)
         self.assertEqual(updated_data['remaining_amount'], 200)
 
+    def test_create_employee(self):
+        # test la creation d'employees
+        user = self.management_controller.create_user(**self.user_data3)
+        self.assertEqual(user.username, f"{self.user_data3['first_name']}.{self.user_data3['last_name']}")
+        self.assertEqual(user.first_name, self.user_data3['first_name'])
+        self.assertEqual(user.last_name, self.user_data3['last_name'])
+        self.assertEqual(user.email, self.user_data3['email'])
+        self.assertEqual(user.role.name.value, self.user_data3['role'])
+        self.assertTrue(user.check_password(self.user_data3['password']))
+        user_in_db = self.session.query(User).filter_by(email=self.user_data3['email']).one()
+        self.assertEqual(user_in_db.username, user.username)
+
+    def test_create_user_with_duplicate(self):
+        # Ajouter un utilisateur existant avec le même email ou nom d'utilisateur
+        self.management_controller.create_user( **self.user_data3)
+        with self.assertRaises(ValueError) as context:
+            self.management_controller.create_user(**self.user_data3)
+        self.assertEqual(str(context.exception), "L'utilisateur avec cet email ou ce nom d'utilisateur existe déjà.")
 
 
 

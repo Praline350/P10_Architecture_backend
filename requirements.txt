@@ -1,8 +1,13 @@
 bcrypt==4.2.0
+coverage==7.6.1
 greenlet==3.0.3
 inflect==7.3.1
 more-itertools==10.4.0
 mysqlclient==2.2.4
+PySide6==6.7.2
+PySide6_Addons==6.7.2
+PySide6_Essentials==6.7.2
+shiboken6==6.7.2
 sqlacodegen-v2==0.1.4
 SQLAlchemy==2.0.32
 tk==0.1.0

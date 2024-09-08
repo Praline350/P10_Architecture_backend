@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
-from views import *
-from controllers import *
+from crm_project.views import *
+from crm_project.controllers import *
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
 class AdminView(QWidget):

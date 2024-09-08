@@ -1,6 +1,6 @@
-from models import *
+from crm_project.models import *
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from project.permissions import *
+from crm_project.project.permissions import *
 
 
 
@@ -13,7 +13,6 @@ def get_roles_list():
     except Exception as e:
         print(f"Error while retrieving roles: {e}")
         return None
-
 
 
 def get_customers_commercial(user, session):

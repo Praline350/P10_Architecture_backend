@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import event
 from datetime import datetime, timezone
 
-from project.config import Base
-from models.mixin_model import BaseModelMixin
+from crm_project.project.config import Base
+from crm_project.models.mixin_model import BaseModelMixin
 
 
 # Modèle Customer
@@ -28,18 +28,7 @@ class Customer(Base, BaseModelMixin):
     def __repr__(self):
         return f"<Customer(name={self.name}, email={self.email})>"
     
-    # def to_dict(self):
-    #     return {
-    #         "id": self.id,
-    #         "name": self.name,
-    #         "email": self.email,
-    #         "company_name": self.company_name,
-    #         "creation_date": self.creation_date,
-    #         "last_update": self.last_update,
-    #         "commercial_contact": self.commercial_contact,
-    #         "commercial_contact_id": self.commercial_contact_id
-    #     }
-    
+
 # Événements SQLAlchemy pour mettre à jour automatiquement les dates
 @event.listens_for(Customer, 'before_insert')
 def set_creation_date(mapper, connection, target):

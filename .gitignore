@@ -1,6 +1,7 @@
 venv/
 env/
-
+htmlcov/
+.coverage
 
 *.exe
 *.dll

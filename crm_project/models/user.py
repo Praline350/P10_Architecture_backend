@@ -2,9 +2,9 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Table, Enum
 from sqlalchemy.orm import relationship
 import enum
 import bcrypt
-from project.config import Base
+from crm_project.project.config import Base
 
-from models.mixin_model import BaseModelMixin
+from  crm_project.models.mixin_model import BaseModelMixin
 
 
 

@@ -3,14 +3,14 @@ from unittest.mock import Mock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from project.config import Base
-from project.settings import initialize_roles_and_permissions
-from controllers import *
-from controllers.authentication_controller import *
-from models import *
+from crm_project.project.config import Base
+from crm_project.project.settings import initialize_roles_and_permissions
+from crm_project.controllers import *
+from crm_project.controllers.authentication_controller import *
+from crm_project.models import *
 
 
-class BaseTest(unittest.TestCase):
+class BaseIntegrationTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -30,7 +30,13 @@ class BaseTest(unittest.TestCase):
         # Créer une nouvelle session pour chaque test
         self.session = self.Session()
         # Mock l'interface 
+        self.main_window_mock = Mock()
+        self.central_widget_mock = Mock()
+        self.main_window_mock.centralWidget.return_value = self.central_widget_mock
         self.root = Mock()
+        self.user_mock = Mock()
+        self.user_mock.role.name.value = 'ADMIN'
+        self.login_view_mock = Mock()
         self.user_data = {
             'first_name':"John",
             'last_name':"Doe",
@@ -38,6 +44,24 @@ class BaseTest(unittest.TestCase):
             'email':"john.doe@example.com",
             'username':"johndoe",
             'password':"securepassword"
+        }
+        self.user_data2 ={
+            'first_name':"Kate",
+            'last_name':"Mak",
+            'employee_number':"224",
+            'email':"Kate@example.com",
+            'username':"katty",
+            'password':"securepassword",
+
+        }
+        self.user_data3 ={
+            'first_name':"Alex",
+            'last_name':"Bay",
+            'employee_number':"224",
+            'email':"alex@example.com",
+            'password':"securepassword",
+            'role': 'ADMIN'
+
         }
         self.customer_data = {
             'first_name': 'Jean',
