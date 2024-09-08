@@ -123,7 +123,6 @@ class TestEventModel(BaseUnitTest):
         event = Event(
             name="Test Event",
             contract=self.contract,
-            client=self.customer,
             start_date=start_date,
             end_date=end_date,
             support_contact=self.user,
@@ -140,7 +139,6 @@ class TestEventModel(BaseUnitTest):
         self.assertEqual(saved_event.location, "New York")
         self.assertEqual(saved_event.attendees, 100)
         self.assertEqual(saved_event.contract_id, self.contract.id)
-        self.assertEqual(saved_event.client_id, self.customer.id)
         self.assertEqual(saved_event.support_contact_id, self.user.id)
 
 class TestUserModel(BaseUnitTest):
