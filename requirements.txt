@@ -1,0 +1,10 @@
+bcrypt==4.2.0
+greenlet==3.0.3
+inflect==7.3.1
+more-itertools==10.4.0
+mysqlclient==2.2.4
+sqlacodegen-v2==0.1.4
+SQLAlchemy==2.0.32
+tk==0.1.0
+typeguard==4.3.0
+typing_extensions==4.12.2

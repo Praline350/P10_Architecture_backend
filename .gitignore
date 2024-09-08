@@ -1,0 +1,11 @@
+venv/
+env/
+
+
+*.exe
+*.dll
+*.so
+*.o
+
+qt5_applications/
+PySide6/
