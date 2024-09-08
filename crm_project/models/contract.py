@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer, DateTime, Boolean, ForeignKey
-import uuid
+import random
+import string
+
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mysql import CHAR
 from sqlalchemy import event
@@ -8,11 +10,20 @@ from crm_project.project.config import Base
 from crm_project.models.mixin_model import BaseModelMixin
 
 
+
+def generate_simple_id():
+    # Générer une lettre majuscule aléatoire
+    letter = random.choice(string.ascii_uppercase)
+    # Générer un nombre aléatoire de 4 chiffres
+    number = ''.join(random.choices(string.digits, k=4))
+    # Combiner la lettre et les chiffres
+    return f"{letter}{number}"
+
 # Modèle Contract
 class Contract(Base, BaseModelMixin):
     __tablename__ = 'contracts'
 
-    id = Column(CHAR(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(CHAR(5), primary_key=True, default=generate_simple_id)
     amount_due = Column(Integer, nullable=False)
     remaining_amount = Column(Integer, nullable=False)
     creation_date = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
@@ -24,7 +35,6 @@ class Contract(Base, BaseModelMixin):
 
     customer_id = Column(Integer, ForeignKey('customers.id'), nullable=False)
     customer = relationship("Customer", back_populates="contracts")
-
     
     events = relationship("Event", back_populates="contract")
 
@@ -45,3 +55,4 @@ def set_creation_date(mapper, connection, target):
 @event.listens_for(Contract, 'before_update')
 def set_last_update(mapper, connection, target):
     target.last_update = datetime.now(timezone.utc)
+

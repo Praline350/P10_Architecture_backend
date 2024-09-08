@@ -1,5 +1,6 @@
-from crm_project.models import *
 from datetime import datetime
+
+from crm_project.models import *
 from crm_project.project.permissions import *
 from crm_project.helpers.get_data import *
 
@@ -47,25 +48,23 @@ class CommercialController:
         return contract
     
 
-    def contract_filter(self, filter_type, filter_value):
-        query = self.session.query(Contract)
-        
-        # Applique le filtre en fonction de la clé
-        match filter_type:
-            case 'status':
-                query = query.filter_by(status=filter_value)
-            case 'amount_due_greater':
-                query = query.filter(Contract.amount_due > filter_value)
-            case 'amount_due_less':
-                query = query.filter(Contract.amount_due < filter_value)
-            case 'remaining_amount_greater':
-                query = query.filter(Contract.remaining_amount > filter_value)
-            case 'remaining_amount_less':
-                query = query.filter(Contract.remaining_amount < filter_value)
-            case 'creation_date_before':
-                query = query.filter(Contract.creation_date < filter_value)
-            case 'creation_date_after':
-                query = query.filter(Contract.creation_date > filter_value)
 
+    def contract_filter(self, filter_data):
+        query = self.session.query(Contract)
+
+        if 'status' in filter_data:
+            query = query.filter_by(status=filter_data['status'])
+        if filter_data['paid'] is not None:
+            if filter_data['paid']:
+                query = query.filter_by(remaining_amount=0)  # Contrats payés
+            else:
+                query = query.filter(Contract.remaining_amount > 0)  # Contrats non payés
+        if filter_data['customer_id'] is not None:
+            query = query.filter_by(customer_id=filter_data['customer_id'])
+            
+        query = query.filter(Contract.amount_due >= filter_data['amount_due_min'])
+        query = query.filter(Contract.amount_due <= filter_data['amount_due_max'])
+        query = query.filter(Contract.creation_date <= filter_data['creation_date_before'])
+        query = query.filter(Contract.creation_date >= filter_data['creation_date_after'])
 
         return query.all()

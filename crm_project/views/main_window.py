@@ -6,7 +6,7 @@ from PySide6.QtCore import Slot
 from PySide6.QtGui import QIcon, QAction, Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QCalendarWidget, QLabel, \
                               QPushButton, QCheckBox, QSpinBox, QLCDNumber, QLineEdit, \
-                              QSlider, QProgressBar, QVBoxLayout, QSpacerItem, QSizePolicy, QMessageBox, QScrollArea, QDialog
+                              QSlider, QProgressBar, QVBoxLayout, QSpacerItem, QSizePolicy, QMessageBox, QScrollArea, QDialog, QTableWidget, QTableWidgetItem
 
 
 class MainWindow(QMainWindow):
@@ -62,53 +62,55 @@ class MainWindow(QMainWindow):
 
     
     def view_customers(self):
-        customers = get_customers_list(self.controller.session)
+        customers = self.controller.session.query(Customer).all()
         if customers:
-            # Créer une nouvelle boîte de dialogue pour afficher les clients
+            # Créer une nouvelle boîte de dialogue pour afficher les contrats
             dialog = QDialog(self)
-            dialog.setWindowTitle("Customer List")
+            dialog.setWindowTitle("Customers List")
 
             # Layout principal
             layout = QVBoxLayout()
 
-            # Créer un en-tête pour les informations des clients
-            header = QLabel("Customer Information")
+            # Créer un en-tête pour les informations des contrats
+            header = QLabel("Customers Information")
             header.setStyleSheet("font-size: 16px; font-weight: bold;")
             layout.addWidget(header)
 
-            # Utiliser un QScrollArea pour pouvoir faire défiler la liste des clients si elle est longue
-            scroll_area = QScrollArea()
-            scroll_widget = QWidget()
-            scroll_layout = QVBoxLayout()
+            # Tableau pour afficher les contrats 
+            table = QTableWidget()
+            table.setColumnCount(8)
+            table.setHorizontalHeaderLabels(["Customer ID",
+                                             "First Name",
+                                             "Last Name",
+                                             "Email",
+                                             "Company Name",
+                                             "Commercial Contact",
+                                             "Creation Date",
+                                             "Last Update"
+                                             ])
+            table.setRowCount(len(customers)) 
+            for i, customer in enumerate(customers):
+                table.setItem(i, 0, QTableWidgetItem(str(customer.id)))
+                table.setItem(i, 1, QTableWidgetItem(str(customer.first_name)))
+                table.setItem(i, 2, QTableWidgetItem(str(customer.last_name)))
+                table.setItem(i, 3, QTableWidgetItem(str(customer.email)))
+                table.setItem(i, 4, QTableWidgetItem(str(customer.company_name)))
+                table.setItem(i, 5, QTableWidgetItem(
+                    str(f"{customer.commercial_contact.first_name} - {customer.commercial_contact.last_name}"
+                        )))
+                table.setItem(i, 6, QTableWidgetItem(customer.creation_date.strftime('%Y-%m-%d')))
+                table.setItem(i, 7, QTableWidgetItem(customer.last_update.strftime('%Y-%m-%d')))
 
-            # Afficher les informations de chaque client
-            for customer in customers:
-                customer_info = (
-                    f"ID: {customer['id']}<br>"
-                    f"Name: {customer['first_name']} - {customer['last_name']}<br>"
-                    f"Email: {customer['email']}<br>"
-                    f"Company: {customer['company_name']}<br>"
-                    f"Creation Date: {customer['creation_date']}<br>"
-                    f"Last Update: {customer['last_update']}<br>"
-                    f"Commercial Contact ID: {customer['commercial_contact_id']}<br>"
-                    "---------------------------------------<br>"
-                )
+            table.resizeColumnsToContents()
+            # Ajouter le tableau et le bouton de fermeture au layout
+            layout.addWidget(table)
+            close_button = QPushButton("Close")
+            close_button.clicked.connect(dialog.accept)
+            layout.addWidget(close_button)
 
-                # Créer un QLabel pour afficher les informations du client
-                customer_label = QLabel(customer_info)
-                customer_label.setTextFormat(Qt.RichText)  # Pour gérer les sauts de ligne et HTML
-                scroll_layout.addWidget(customer_label)
-
-            scroll_widget.setLayout(scroll_layout)
-            scroll_area.setWidget(scroll_widget)
-            scroll_area.setWidgetResizable(True)
-            
-            # Ajouter le scroll area au layout principal
-            layout.addWidget(scroll_area)
-
-            # Appliquer le layout à la boîte de dialogue
+            # Appliquer le layout à la boîte de dialogue et l'afficher
             dialog.setLayout(layout)
-            dialog.resize(400, 400)
+            dialog.resize(850,400 )  # Dimensionner la fenêtre à 600x400 pixels
             dialog.exec()
         else:
             QMessageBox.warning(self, "Error", "No customers found.")
@@ -116,45 +118,59 @@ class MainWindow(QMainWindow):
     def view_events(self):
         events = get_events_list(self.controller.session)
         if events:
-            # Créer une nouvelle boîte de dialogue pour afficher les événements
+            # Créer une nouvelle boîte de dialogue pour afficher les contrats
             dialog = QDialog(self)
-            dialog.setWindowTitle("Events List")
+            dialog.setWindowTitle("Event List")
 
             # Layout principal
             layout = QVBoxLayout()
 
-            # Créer un en-tête pour les informations des événements
-            header = QLabel("Events Information")
+            # Créer un en-tête pour les informations des contrats
+            header = QLabel("Event Information")
             header.setStyleSheet("font-size: 16px; font-weight: bold;")
             layout.addWidget(header)
 
-            # Utiliser un QScrollArea pour permettre de faire défiler les événements
-            scroll_area = QScrollArea()
-            scroll_widget = QWidget()
-            scroll_layout = QVBoxLayout()
+            # Tableau pour afficher les contrats 
+            table = QTableWidget()
+            table.setColumnCount(10)
+            table.setHorizontalHeaderLabels(["Event ID",
+                                             "contract ID",
+                                             "Name",
+                                             "Support Contact",
+                                             "Customer",
+                                             "Start Date",
+                                             "End Date",
+                                             "Location",
+                                             "Attendees",
+                                             "Comment"
+                                             ])
+            table.setRowCount(len(events))
+            for i, event in enumerate(events):
+                table.setItem(i, 0, QTableWidgetItem(str(event.id)))
+                table.setItem(i, 1, QTableWidgetItem(str(event.contract_id)))
+                table.setItem(i, 2, QTableWidgetItem(str(event.name)))
+                table.setItem(i, 3, QTableWidgetItem(str(event.support_contact.last_name)))
+                table.setItem(i, 4, QTableWidgetItem(str(event.customer.name)))
+                table.setItem(i, 5, QTableWidgetItem(event.start_date.strftime('%Y-%m-%d')))
+                table.setItem(i, 6, QTableWidgetItem(event.end_date.strftime('%Y-%m-%d')))
+                table.setItem(i, 7, QTableWidgetItem(str(event.location)))
+                table.setItem(i, 8, QTableWidgetItem(str(event.attendees)))
+                table.setItem(i, 9, QTableWidgetItem(str(event.comment)))
 
-            # Afficher les informations de chaque événement
-            for event in events:
-                event_info = f"Event Name: {event.name}<br>" \
-                            f"Date: {event.date}<br>" \
-                            "---------------------------------------<br>"
-                event_label = QLabel(event_info)
-                event_label.setTextFormat(Qt.RichText)  # Pour gérer les sauts de ligne et HTML
-                scroll_layout.addWidget(event_label)
+            table.resizeColumnsToContents()
+            # Ajouter le tableau et le bouton de fermeture au layout
+            layout.addWidget(table)
+            close_button = QPushButton("Close")
+            close_button.clicked.connect(dialog.accept)
+            layout.addWidget(close_button)
 
-            scroll_widget.setLayout(scroll_layout)
-            scroll_area.setWidget(scroll_widget)
-            scroll_area.setWidgetResizable(True)
-
-            # Ajouter le QScrollArea au layout principal
-            layout.addWidget(scroll_area)
-
-            # Appliquer le layout à la boîte de dialogue
+            # Appliquer le layout à la boîte de dialogue et l'afficher
             dialog.setLayout(layout)
-            dialog.resize(400, 400)
+            dialog.resize(800,400 )  # Dimensionner la fenêtre à 600x400 pixels
             dialog.exec()
         else:
-            QMessageBox.warning(self, "Error", "No events found.")
+            QMessageBox.warning(self, "Error", "No Event found.")
+
     def view_contracts(self):
         contracts = get_contracts_list(self.controller.session)
         if contracts:
@@ -170,35 +186,41 @@ class MainWindow(QMainWindow):
             header.setStyleSheet("font-size: 16px; font-weight: bold;")
             layout.addWidget(header)
 
-            # Utiliser un QScrollArea pour permettre de faire défiler les contrats
-            scroll_area = QScrollArea()
-            scroll_widget = QWidget()
-            scroll_layout = QVBoxLayout()
+            # Tableau pour afficher les contrats 
+            table = QTableWidget()
+            table.setColumnCount(8)
+            table.setHorizontalHeaderLabels(["Contract ID",
+                                             "Status",
+                                             "Customer",
+                                             "Commercial Contact",
+                                             "Creation Date",
+                                             "Last Update",
+                                             "Amount Due",
+                                             "Remaining Amount"
+                                             ])
+            table.setRowCount(len(contracts))
+            for i, contract in enumerate(contracts):
+                table.setItem(i, 0, QTableWidgetItem(str(contract.id)))
+                table.setItem(i, 1, QTableWidgetItem("Active" if contract.status else "Inactive"))
+                table.setItem(i, 2, QTableWidgetItem(str(f"{contract.customer.last_name} - {contract.customer.first_name}")))
+                table.setItem(i, 3, QTableWidgetItem(str(f"{contract.commercial_contact.last_name}- {contract.commercial_contact.first_name}")))
+                table.setItem(i, 4, QTableWidgetItem(contract.creation_date.strftime('%Y-%m-%d')))
+                table.setItem(i, 5, QTableWidgetItem(contract.last_update.strftime('%Y-%m-%d')))
+                table.setItem(i, 6, QTableWidgetItem(str(contract.amount_due)))
+                table.setItem(i, 7, QTableWidgetItem(str(contract.remaining_amount)))
+            table.resizeColumnsToContents()
+            # Ajouter le tableau et le bouton de fermeture au layout
+            layout.addWidget(table)
+            close_button = QPushButton("Close")
+            close_button.clicked.connect(dialog.accept)
+            layout.addWidget(close_button)
 
-            # Afficher les informations de chaque contrat
-            for contract in contracts:
-                contract_info = f"Contract ID: {contract.id}<br>" \
-                                f"Amount Due: {contract.amount_due}<br>" \
-                                f"Remaining Amount: {contract.remaining_amount}<br>" \
-                                "---------------------------------------<br>"
-                contract_label = QLabel(contract_info)
-                contract_label.setTextFormat(Qt.RichText)  # Pour gérer les sauts de ligne et HTML
-                scroll_layout.addWidget(contract_label)
-
-            scroll_widget.setLayout(scroll_layout)
-            scroll_area.setWidget(scroll_widget)
-            scroll_area.setWidgetResizable(True)
-
-            # Ajouter le QScrollArea au layout principal
-            layout.addWidget(scroll_area)
-
-            # Appliquer le layout à la boîte de dialogue
+            # Appliquer le layout à la boîte de dialogue et l'afficher
             dialog.setLayout(layout)
-            dialog.resize(400, 400)
+            dialog.resize(850,400 )  # Dimensionner la fenêtre à 600x400 pixels
             dialog.exec()
         else:
             QMessageBox.warning(self, "Error", "No contracts found.")
-
 
     def logout(self):
         result = self.messagebox_template(

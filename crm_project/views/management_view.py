@@ -71,22 +71,32 @@ class ManagementView(QWidget):
         remaining_amount_entry = QLineEdit()
         form_layout.addRow("Remaining amount:", remaining_amount_entry)
 
-        contract_data = {
-            'amount_due': amount_due_entry.text(),
-            'remaining_amount': remaining_amount_entry.text(),
-        }
-
-        # Boutons pour soumettre ou annuler
-        customer =  customer_combobox.currentData()
-        print(customer)
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(lambda: self.create_contract(dialog, customer,**contract_data))
+        buttons.accepted.connect(lambda: self.create_contract(dialog, customer_combobox.currentData(), amount_due_entry.text(), remaining_amount_entry.text(),))
         buttons.rejected.connect(dialog.reject)
         form_layout.addWidget(buttons)
 
         # Appliquer le layout à la fenêtre modale
         dialog.setLayout(form_layout)
         dialog.exec()
+
+    
+    def create_contract(self, dialog, customer, amount_due, remaining_amount):
+        """
+        Crée un contrat avec les données fournies.
+        """
+        contract_data = {
+            'amount_due': int(amount_due),
+            'remaining_amount': int(remaining_amount)
+        }
+        try:
+            # Logique pour créer le contrat via le contrôleur
+            self.controller.create_contract(customer, **contract_data)
+            QMessageBox.information(self, "Success", "Contract created successfully.")
+            dialog.accept()  # Ferme la fenêtre après succès
+        except PermissionError as e:
+            QMessageBox.warning(self, "Permission Denied", str(e))
+
 
     def create_user_window(self):
         """
@@ -160,83 +170,5 @@ class ManagementView(QWidget):
 
 
 
-    def create_contract(self, dialog, customer, **contract_data):
-        """
-        Crée un contrat avec les données fournies.
-        """
-        try:
-            # Logique pour créer le contrat via le contrôleur
-            new_contract = self.controller.create_contract(customer, **contract_data)
-            QMessageBox.information(self, "Success", "Contract created successfully.")
-            dialog.accept()  # Ferme la fenêtre après succès
-        except PermissionError as e:
-            QMessageBox.warning(self, "Permission Denied", str(e))
-
         
-        
-        
-    #     self.parent = parent
-    #     authenticated_user = self.controller.authenticated_user
-    #     if authenticated_user.role.name.value is not 'ADMIN':
-    #         self.create_widgets(row=0, column=0)
-    #         tk.Label(self,
-    #                 text=f"Management Dashboard, Welcome {authenticated_user.first_name} {authenticated_user.last_name}",
-    #                 font=("Helvetica", 16)
-    #                 ).grid(row=1, column=0, columnspan=2, pady=10)
-
-    
-    # def create_widgets(self, row, column):
-    #     # Bouton pour ouvrir la fenêtre de création de client
-    #     self.create_contract_button = tk.Button(self.parent, text="Create Contract", command=self.create_contract_window)
-    #     self.create_contract_button.grid(row=row, column=column)
-
-    
-    # def create_contract_window(self):
-    #     window = tk.Toplevel(self)
-    #     window.title("Create Contract")
-    #     customers = get_customers_list(self.controller.session)
-    #     customer_names = [customer["name"] for customer in customers]
-
-    #     # Choix du client 
-    #     tk.Label(window, text="Select Customer:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-    #     customer_combobox = ttk.Combobox(window, values=customer_names)
-    #     customer_combobox.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
-    #     customer_combobox.set("Select a customer")
-
-    #     # choix montant 
-    #     tk.Label(window, text="Amount due").grid(row=1, column=0, columnspan=2, pady=10)
-    #     amount_due_entry = tk.Entry(window)
-    #     amount_due_entry.grid(row=1, column=2, columnspan=2, pady=10)
-
-    #     # choix montant encore due
-    #     tk.Label(window, text="Remaining amount").grid(row=2, column=0, columnspan=2, pady=10)
-    #     remaining_amount_entry = tk.Entry(window)
-    #     remaining_amount_entry.grid(row=2, column=2, columnspan=2, pady=10)
-
-
-    #     # Bouton pour soumettre les données
-    #     submit_button = tk.Button(
-    #         window,
-    #         text="Submit", 
-    #         command=lambda: self.create_contract(
-    #             window,
-    #             customer_combobox.get(),
-    #             amount_due_entry.get(),
-    #             remaining_amount_entry.get()
-    #             )
-    #         )
-    #     submit_button.grid(row=4, column=1, columnspan=2, pady=10)
-
-    #     window.columnconfigure(1, weight=1)
-
-    # def create_contract(self, window, customer, amount_due, remaining_amount):
-    #     contract_data = {
-    #         'amount_due': amount_due,
-    #         'remaining_amount': remaining_amount,
-    #     }
-    #     try:
-    #         new_contract = self.controller.create_contract(customer, **contract_data)
-    #         messagebox.showinfo("Success", f"Contract created successfully.")
-    #         window.destroy()  # Fermer la fenêtre après succès
-    #     except PermissionError as e:
-    #         messagebox.showerror("Permission Denied", str(e))
+  

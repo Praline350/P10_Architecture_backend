@@ -24,6 +24,58 @@ QLineEdit {
     border-radius: 4px;
 
 }
+QComboBox {
+    padding: 5px;
+
+
+}
+
+QCheckBox {
+    padding: 5px;
+
+}
+
+QRadioButton {
+    padding:5px;
+}
+
+QDateEdit {
+    padding: 5px;
+}
+
+
+QSlider::handle:horizontal {
+    background: #546A76; /* Couleur du curseur */
+}
+
+QRadioButton::indicator {
+    width: 14px;
+    height: 14px;
+    border-radius: 14px;
+}
+
+QRadioButton::indicator::unchecked {
+    background-color: white;
+    border: 1px solid #555555;
+}
+
+QRadioButton::indicator::checked {
+    background-color: #546A76;
+    border: 1px solid #555555;
+}
+
+QRadioButton {
+    color: #546A76;  
+}
+
+QCalendarWidget QToolButton::hover {
+    background-color: #546A76;
+}
+
+QCalendarWidget QWidget#qt_calendar_navigationbar {
+    background-color: #546A76;
+}
+
 QPushButton {
     background-color: #546A76;
     color: white;
@@ -31,6 +83,7 @@ QPushButton {
     border-radius: 5px;
 
 }
+
 QPushButton:hover {
     background-color: #88A0A8;
 }
@@ -61,3 +114,21 @@ QMessageBox QPushButton:pressed {
     background-color: #88A0A8;  /* Couleur de fond quand le bouton est pressé */
 }
 
+QTableWidget {
+    background-color: #f9f9f9;
+    gridline-color: #cccccc;
+}
+QTableWidget::item {
+    padding: 5px;
+    border: 1px solid #cccccc;
+}
+QTableWidget::item:selected {
+    background-color: #a8d8f0;
+    color: #000000;
+}
+QHeaderView::section {
+    background-color: #f1f1f1;
+    font-weight: bold;
+    padding: 5px;
+    border: 1px solid #cccccc;
+}

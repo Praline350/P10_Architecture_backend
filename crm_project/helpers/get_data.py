@@ -78,3 +78,5 @@ def get_contracts_list(session):
         print(f"Error during get contracts: {e}")
         return None
     
+
+    

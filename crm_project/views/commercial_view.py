@@ -3,8 +3,16 @@
 from crm_project.helpers.get_data import *
 from crm_project.views import *
 
-from PySide6.QtCore import Qt 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout ,QComboBox, QLineEdit, QMessageBox, QDialog, QFormLayout, QDialogButtonBox, QGridLayout,QSpacerItem, QSizePolicy, QFormLayout
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
+                               QHBoxLayout ,QComboBox, QLineEdit, QMessageBox,
+                               QDialog, QFormLayout, QDialogButtonBox, QGridLayout,
+                               QSpacerItem, QSizePolicy, QFormLayout, QCheckBox,
+                               QSlider, QDateEdit, QTableWidget, QTableWidgetItem,
+                               QRadioButton
+                               )
+
+
 
 class CommercialView(QWidget):
     def __init__(self, main_window, controller):
@@ -28,10 +36,13 @@ class CommercialView(QWidget):
         self.create_customer_button.clicked.connect(self.create_customer_window)
         self.update_customer_button = QPushButton("Update a Customer")
         self.update_customer_button.clicked.connect(self.update_customer_window)
+        self.get_filter_contract_button = QPushButton("Get Filter Contracts")
+        self.get_filter_contract_button.clicked.connect(self.filter_contract_window)
 
         widgets = [
             self.create_customer_button,
-            self.update_customer_button
+            self.update_customer_button,
+            self.get_filter_contract_button
         ]
 
         columns = 2
@@ -81,6 +92,28 @@ class CommercialView(QWidget):
         # Appliquer le layout à la fenêtre modale
         dialog.setLayout(form_layout)
         dialog.exec()
+    
+    def create_customer(self, dialog, first_name, last_name, email, company_name):
+        """
+        Appelle le contrôleur pour créer un nouveau client avec les données fournies.
+        """
+        # Préparation des données du client
+        customer_data = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+            'company_name': company_name,
+        }
+
+        # Appel au contrôleur pour créer le client
+        try:
+            new_customer = self.controller.create_customer(**customer_data)
+            QMessageBox.information(self, "Success", "Customer created successfully.")
+            dialog.accept()  # Ferme la fenêtre après succès
+        except PermissionError as e:
+            QMessageBox.warning(self, "Permission Denied", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
     def update_customer_window(self):
         """
@@ -147,14 +180,13 @@ class CommercialView(QWidget):
         dialog.setLayout(form_layout)
         dialog.exec()
 
-    def update_customer(self, dialog,customer_id, first_name, last_name, email, company_name):
+    def update_customer(self, dialog, customer_id, first_name, last_name, email, company_name):
         customer_data = {
             'first_name': first_name,
             'last_name': last_name,
             'email': email,
             'company_name': company_name,
         }
-
             # Appel au contrôleur pour mettre à jour le client
         try:
             updated_customer = self.controller.update_customer(customer_id, **customer_data)
@@ -164,242 +196,173 @@ class CommercialView(QWidget):
             QMessageBox.warning(self, "Error", str(e))
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
-    def create_customer(self, dialog, first_name, last_name, email, company_name):
-        """
-        Appelle le contrôleur pour créer un nouveau client avec les données fournies.
-        """
-        # Préparation des données du client
-        customer_data = {
-            'first_name': first_name,
-            'last_name': last_name,
-            'email': email,
-            'company_name': company_name,
-        }
-
-        # Appel au contrôleur pour créer le client
-        try:
-            new_customer = self.controller.create_customer(**customer_data)
-            QMessageBox.information(self, "Success", "Customer created successfully.")
-            dialog.accept()  # Ferme la fenêtre après succès
-        except PermissionError as e:
-            QMessageBox.warning(self, "Permission Denied", str(e))
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
 
+    def filter_contract_window(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Get Contract List by Filter")
+        customers = get_customers_list(self.controller.session)
 
-        # tk.Label(window, text="Customer Name:").grid(row=1, column=0, columnspan=2, pady=10)
-        # name_entry = tk.Entry(window)
-        # name_entry.grid(row=1, column=2, columnspan=2, pady=10)
+        form_layout = QFormLayout()
 
-        # tk.Label(window, text="Customer Email:").grid(row=2, column=0, columnspan=2, pady=10)
-        # email_entry = tk.Entry(window)
-        # email_entry.grid(row=2, column=2, columnspan=2, pady=10)
+        self.customer_combobox = QComboBox()
+        self.customer_combobox.addItem("All Customers", None)
+        for customer in customers:
+            customer_name = f"{customer['first_name']} {customer['last_name']}"
+            self.customer_combobox.addItem(customer_name, customer['id'])
+        form_layout.addRow("Select Customer:", self.customer_combobox)
 
-        # tk.Label(window, text="Company Name:").grid(row=3, column=0, columnspan=2, pady=10)
-        # company_name_entry = tk.Entry(window)
-        # company_name_entry.grid(row=3, column=2, columnspan=2, pady=10)
+        self.status_checkbox = QCheckBox()
+        form_layout.addRow("Filter by Status (Active=Signed)", self.status_checkbox)
 
-        # # Bouton pour soumettre les données
-        # submit_button = tk.Button(window, text="Submit", 
-        #                           command=lambda: self.create_customer(window, name_entry.get(), email_entry.get(), company_name_entry.get()))
-        # submit_button.grid(row=4, column=1, columnspan=2, pady=10)
+        # Créer un groupe de boutons radio pour le filtre sur le paiement
+        self.paid_all_radio = QRadioButton("All")
+        self.paid_radio = QRadioButton("Paid")
+        self.not_paid_radio = QRadioButton("Not Paid")
+        self.paid_all_radio.setChecked(True)
 
-        # window.columnconfigure(1, weight=1)
-
-    # def update_customer_window(self):
-    #     window = tk.Toplevel(self)
-    #     window.title = "Update Customer"
-    #     customers = get_customers_commercial(self.controller.authenticated_user, self.controller.session)
-    #     customer_names = [customer["name"] for customer in customers]
-        
-    #     # Créer un label et une combobox pour les clients
-    #     tk.Label(window, text="Select Customer:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-    #     customer_combobox = ttk.Combobox(window, values=customer_names)
-    #     customer_combobox.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
-    #     customer_combobox.set("Select a customer")  # Texte par défaut
-        
-    #     # Champ pour les informations mises à jour
-    #     tk.Label(window, text="Update Email:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-    #     email_entry = tk.Entry(window)
-    #     email_entry.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
-
-    #     tk.Label(window, text="Update Company Name:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
-    #     company_name_entry = tk.Entry(window)
-    #     company_name_entry.grid(row=2, column=1, padx=10, pady=5, sticky="ew")
-
-    #     # Bouton pour soumettre les changements
-    #     submit_button = tk.Button(
-    #         window, 
-    #         text="Submit", 
-    #         command=lambda: self.update_customer(
-    #             window, 
-    #             customer_combobox.get(), 
-    #             email_entry.get(), 
-    #             company_name_entry.get()
-    #         )
-    #     )
-    #     submit_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
-
-    #     # S'assurer que la fenêtre est redimensionnable et que les colonnes s'ajustent
-    #     window.columnconfigure(1, weight=1)
-
-    # def update_contract_window(self):
-    #     window = tk.Toplevel(self)
-    #     window.title = 'Udpate Contract'
-
-    #     customers = get_customers_commercial(self.controller.authenticated_user, self.controller.session)
-    #     customer_names = [customer["name"] for customer in customers]
-
-    #     # Créer un label et une combobox pour sélectionner un client
-    #     tk.Label(window, text="Select Customer:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-    #     customer_combobox = ttk.Combobox(window, values=customer_names)
-    #     customer_combobox.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
-    #     customer_combobox.set("Select a customer")  # Texte par défaut
-
-    #     tk.Label(window, text="Select Contract:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-    #     contract_combobox = ttk.Combobox(window, values=[])
-    #     contract_combobox.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
-    #     contract_combobox.set("Select a contract") 
-
-    #     # Mise à jour dynamique des contrats lorsqu'un client est sélectionné
-    #     def update_contracts(*args):
-    #         selected_customer_name = customer_combobox.get()
-    #         selected_customer = next((customer for customer in customers if customer["name"] == selected_customer_name), None)
+        paid_layout = QHBoxLayout()
+        paid_layout.addWidget(self.paid_all_radio)
+        paid_layout.addWidget(self.paid_radio)
+        paid_layout.addWidget(self.not_paid_radio)
+        form_layout.addRow("Filter by Payment Status:", paid_layout)
             
-    #         if selected_customer:
-    #             # Récupérer les contrats pour le client sélectionné
-    #             contracts = self.controller.session.query(Contract).filter_by(customer_id=selected_customer['id']).all()
-    #             contract_names = [f"Contract ID: {contract.id} - Amount Due: {contract.amount_due}" for contract in contracts]
-    #             contract_combobox['values'] = contract_names
-    #             contract_combobox.set("Select a contract")
+        # Min Amount Due Slider and Label
+        self.amount_due_min_slider = QSlider(Qt.Horizontal)
+        self.amount_due_min_slider.setRange(0, 10000)
+        self.amount_due_min_slider.setValue(0)
+        self.amount_due_min_lineedit = QLineEdit("0")
+        self.amount_due_min_lineedit.setFixedWidth(60)
 
-    #     customer_combobox.bind("<<ComboboxSelected>>", update_contracts)
+        amount_due_min_layout = QHBoxLayout()
+        amount_due_min_layout.addWidget(self.amount_due_min_slider)
+        amount_due_min_layout.addWidget(self.amount_due_min_lineedit)
+        form_layout.addRow("Min Amount Due:", amount_due_min_layout)
 
-    #     # Champ pour les informations mises à jour
-    #     tk.Label(window, text="Update amount due:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-    #     amount_due_entry = tk.Entry(window)
-    #     amount_due_entry.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
+        # Max Amount Due Slider and Label
+        self.amount_due_max_slider = QSlider(Qt.Horizontal)
+        self.amount_due_max_slider.setRange(0, 10000)
+        self.amount_due_max_slider.setValue(10000)
+        self.amount_due_max_lineedit = QLineEdit("10000")
+        self.amount_due_max_lineedit.setFixedWidth(60)
 
-    #     tk.Label(window, text="Update Remaining amount:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
-    #     remaining_amount_entry = tk.Entry(window)
-    #     remaining_amount_entry .grid(row=2, column=1, padx=10, pady=5, sticky="ew")
+        amount_due_max_layout = QHBoxLayout()
+        amount_due_max_layout.addWidget(self.amount_due_max_slider)
+        amount_due_max_layout.addWidget(self.amount_due_max_lineedit)
+        form_layout.addRow("Max Amount Due:", amount_due_max_layout)
 
-    #     tk.Label(window, text="Update Status (True/False):").grid(row=4, column=0, padx=10, pady=5, sticky="w")
-    #     status_entry = tk.Entry(window)
-    #     status_entry.grid(row=3, column=1, padx=10, pady=5, sticky="ew")
+        # Creation contract Date filter
+        self.creation_date_after = QDateEdit()
+        self.creation_date_after.setCalendarPopup(True)
+        self.creation_date_after.setDate(QDate.currentDate().addDays(-5))
+        form_layout.addRow("Contract Create After:", self.creation_date_after)
 
-    #     submit_button = tk.Button(
-    #     window, 
-    #     text="Submit", 
-    #     command=lambda: self.update_contract(
-    #         window, 
-    #         contract_combobox.get(), 
-    #         amount_due_entry.get(), 
-    #         remaining_amount_entry.get(), 
-    #         status_entry.get()
-    #         )
-    #     )
-    #     submit_button.grid(row=5, column=0, columnspan=2, padx=10, pady=10)
-
-    #     # S'assurer que la fenêtre est redimensionnable et que les colonnes s'ajustent
-    #     window.columnconfigure(1, weight=1)
-
-
-    # def contract_filter_window(self):
-    #     window = tk.Toplevel(self)
-    #     window.title = 'Contract filter'
-
-    #     tk.Label(window, text="Select Filter:").grid(row=0, column=0, padx=10, pady=10)
-    #     filter_options = ["status", "amount_due_greater", "amount_due_less", "remaining_amount_greater", "remaining_amount_less", "creation_date_before", "creation_date_after"]
-    #     self.filter_var = tk.StringVar(value="status")  # Variable pour stocker la sélection
-    #     filter_menu = ttk.Combobox(window, textvariable=self.filter_var, values=filter_options)
-    #     filter_menu.grid(row=0, column=1, padx=10, pady=10)
-
-    #     # Champ pour entrer la valeur du filtre
-    #     tk.Label(window, text="Filter Value:").grid(row=1, column=0, padx=10, pady=10)
-    #     self.filter_value_entry = tk.Entry(window)
-    #     self.filter_value_entry.grid(row=1, column=1, padx=10, pady=10)
+        self.creation_date_before = QDateEdit()
+        self.creation_date_before.setCalendarPopup(True)
+        self.creation_date_before.setDate(QDate.currentDate().addDays(5))
+        form_layout.addRow("Contract Create Before:", self.creation_date_before)
         
-    #     # Bouton pour appliquer le filtre
-    #     apply_filter_button = tk.Button(window, text="Apply Filter", command=self.apply_contract_filter)
-    #     apply_filter_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+        def update_slider_from_lineedit(slider, lineedit):
+            # Fonction de mise à jour dynamique entre les sliders et les LineEdits
+            try:
+                value = int(lineedit.text())
+                slider.setValue(value)
+            except ValueError:
+                lineedit.setText(str(slider.value()))  # Remet la valeur actuelle si la saisie est incorrecte
 
-    # def apply_contract_filter(self):
-    #     """Applique le filtre de contrat sélectionné."""
-    #     filter_type = self.filter_var.get() 
-    #     filter_value = self.filter_value_entry.get()  
+        def update_lineedit_from_slider(slider, lineedit):
+            lineedit.setText(str(slider.value()))
 
-    #     if filter_type in ["amount_due_greater", "amount_due_less", "remaining_amount_greater", "remaining_amount_less"]:
-    #         try:
-    #             filter_value = int(filter_value)
-    #         except ValueError:
-    #             messagebox.showerror("Invalid Input", "Please enter a valid number for the amount.")
-    #             return
+        # Connecte les sliders et les LineEdits 
+        self.amount_due_min_slider.valueChanged.connect(lambda value: update_lineedit_from_slider(self.amount_due_min_slider, self.amount_due_min_lineedit))
+        self.amount_due_min_lineedit.textChanged.connect(lambda: update_slider_from_lineedit(self.amount_due_min_slider, self.amount_due_min_lineedit))
 
-    #     # Pour les dates, tu pourrais utiliser un `DatePicker` ou forcer un format particulier
-    #     # On pourrait convertir la chaîne en objet date si nécessaire (par ex. datetime.strptime)
-        
-    #     # Applique le filtre via le contrôleur
-    #     contracts = self.controller.contract_filter(filter_type, filter_value)
-    #     if contracts:
-    #         # Afficher le résultat dans une nouvelle fenêtre
-    #         result_window = tk.Toplevel(self)
-    #         result_window.title("Filtered Contracts")
-    #         for i, contract in enumerate(contracts):
-    #             tk.Label(result_window, text=f"Contract ID: {contract.id}, Amount Due: {contract.amount_due}, Status: {contract.status}").grid(row=i, column=0, padx=10, pady=5)
-    #     else:
-    #         messagebox.showinfo("No Results", "No contracts found matching the filter.")
-
-    # def create_customer(self, window, name, email, company_name):
-    #     customer_data = {
-    #         'name': name,
-    #         'email': email,
-    #         'company_name': company_name,
-    #     }
-    #     try:
-    #         new_customer = self.controller.create_customer(**customer_data)
-    #         messagebox.showinfo("Success", f"Customer '{new_customer.name}' created successfully.")
-    #         window.destroy()  # Fermer la fenêtre après succès
-    #     except PermissionError as e:
-    #         messagebox.showerror("Permission Denied", str(e))
-
-    # def update_customer(self, window, customer_name, email, company_name):
-    #     customer_data = {
-    #         'email': email,
-    #         'company_name': company_name,
-    #     }
-    #     try:
-    #         updated_customer = self.controller.update_customer(customer_name, **customer_data)
-    #         if updated_customer:
-    #             messagebox.showinfo("Success", f"Customer '{updated_customer.name}' updated successfully.")
-    #             window.destroy()  # Fermer la fenêtre après succès
-    #         else:
-    #             messagebox.showerror("Error", "Customer not found.")
-    #     except PermissionError as e:
-    #         messagebox.showerror("Permission Denied", str(e))
-
-    # def update_contract(self, window, selected_contract, amount_due, remaining_amount, status):
-    #     contract_id = selected_contract.split()[2]  
-    #     contract = self.controller.session.query(Contract).filter_by(id=contract_id).first()
-        
-    #     if contract:
-    #         if amount_due:
-    #             contract.amount_due = int(amount_due)
-    #         if remaining_amount:
-    #             contract.remaining_amount = int(remaining_amount)
-    #         if status:
-    #             contract.status = status.lower() == 'true'
-            
-    #         self.controller.session.commit()
-    #         messagebox.showinfo("Success", "Contract updated successfully.")
-    #         window.destroy()  # Fermer la fenêtre après succès
-    #     else:
-    #         messagebox.showerror("Error", "Contract not found.")
+        self.amount_due_max_slider.valueChanged.connect(lambda value: update_lineedit_from_slider(self.amount_due_max_slider, self.amount_due_max_lineedit))
+        self.amount_due_max_lineedit.textChanged.connect(lambda: update_slider_from_lineedit(self.amount_due_max_slider, self.amount_due_max_lineedit))
 
 
+        # Boutons pour appliquer ou annuler
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.apply_filter)
+        buttons.rejected.connect(dialog.reject)
+        form_layout.addWidget(buttons)
 
-
-
-
+        dialog.setLayout(form_layout)
+        dialog.exec()
     
+    def apply_filter(self):
+        """
+        Applique les filtres et affiche la liste des contrats filtrés.
+        """
+        filter_data = {}
+
+        # Récupérer les checkbox
+        if self.status_checkbox.isChecked():
+            filter_data['status'] = True
+        if self.paid_radio.isChecked():
+            filter_data['paid'] = True
+        elif self.not_paid_radio.isChecked():
+            filter_data['paid'] = False
+        else:
+            filter_data['paid'] = None
+        
+        filter_data['customer_id'] = self.customer_combobox.currentData()
+        filter_data['amount_due_min'] = self.amount_due_min_slider.value()
+        filter_data['amount_due_max'] = self.amount_due_max_slider.value()
+        filter_data['creation_date_before'] = self.creation_date_before.date().toPython()
+        filter_data['creation_date_after'] = self.creation_date_after.date().toPython()
+
+        contracts = self.controller.contract_filter(filter_data)
+        self.show_filtered_contracts(contracts)
+
+    def show_filtered_contracts(self, contracts):
+        """
+        Affiche les contrats filtrés dans une nouvelle fenêtre.
+        """
+        if contracts:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("Contracts List")
+
+            # Layout principal
+            layout = QVBoxLayout()
+
+            # Créer un en-tête pour les informations des contrats
+            header = QLabel("Contracts Information")
+            header.setStyleSheet("font-size: 16px; font-weight: bold;")
+            layout.addWidget(header)
+
+            # Tableau pour afficher les contrats 
+            table = QTableWidget()
+            table.setColumnCount(8)
+            table.setHorizontalHeaderLabels(["Contract ID",
+                                             "Status",
+                                             "Customer",
+                                             "Commercial Contact",
+                                             "Creation Date",
+                                             "Last Update",
+                                             "Amount Due",
+                                             "Remaining Amount"
+                                             ])
+            table.setRowCount(len(contracts))
+            for i, contract in enumerate(contracts):
+                table.setItem(i, 0, QTableWidgetItem(str(contract.id)))
+                table.setItem(i, 1, QTableWidgetItem("Active" if contract.status else "Inactive"))
+                table.setItem(i, 2, QTableWidgetItem(str(f"{contract.customer.last_name} - {contract.customer.first_name}")))
+                table.setItem(i, 3, QTableWidgetItem(str(f"{contract.commercial_contact.last_name}- {contract.commercial_contact.first_name}")))
+                table.setItem(i, 4, QTableWidgetItem(contract.creation_date.strftime('%Y-%m-%d')))
+                table.setItem(i, 5, QTableWidgetItem(contract.last_update.strftime('%Y-%m-%d')))
+                table.setItem(i, 6, QTableWidgetItem(str(contract.amount_due)))
+                table.setItem(i, 7, QTableWidgetItem(str(contract.remaining_amount)))
+            table.resizeColumnsToContents()
+            # Ajouter le tableau et le bouton de fermeture au layout
+            layout.addWidget(table)
+            close_button = QPushButton("Close")
+            close_button.clicked.connect(dialog.accept)
+            layout.addWidget(close_button)
+
+            # Appliquer le layout à la boîte de dialogue et l'afficher
+            dialog.setLayout(layout)
+            dialog.resize(850,400 )  # Dimensionner la fenêtre à 600x400 pixels
+            dialog.exec()
+        else:
+            QMessageBox.warning(self, "Error", "No contracts found.")
