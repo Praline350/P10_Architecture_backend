@@ -25,14 +25,14 @@ QLineEdit {
 
 }
 QPushButton {
-    background-color: #3498db;
+    background-color: #546A76;
     color: white;
     padding: 10px;
     border-radius: 5px;
 
 }
 QPushButton:hover {
-    background-color: #2980b9;
+    background-color: #88A0A8;
 }
 
 QMessageBox {

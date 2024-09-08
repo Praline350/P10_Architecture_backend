@@ -1,7 +1,8 @@
-import tkinter as tk
-from tkinter import messagebox, ttk
+
+
 from crm_project.helpers.get_data import *
 from crm_project.views import *
+
 from PySide6.QtCore import Qt 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout ,QComboBox, QLineEdit, QMessageBox, QDialog, QFormLayout, QDialogButtonBox, QGridLayout,QSpacerItem, QSizePolicy, QFormLayout
 
@@ -23,12 +24,14 @@ class CommercialView(QWidget):
 
         grid = QGridLayout()
         
-
         self.create_customer_button = QPushButton("Create New Customer")
         self.create_customer_button.clicked.connect(self.create_customer_window)
+        self.update_customer_button = QPushButton("Update a Customer")
+        self.update_customer_button.clicked.connect(self.update_customer_window)
 
         widgets = [
             self.create_customer_button,
+            self.update_customer_button
         ]
 
         columns = 2
@@ -42,25 +45,6 @@ class CommercialView(QWidget):
         layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
         self.setLayout(layout)
         
-    # def create_widgets(self, row, column):
-    #     """Créer les boutons dans la vue commerciale avec un positionnement dynamique."""
-
-    #     # Liste des boutons et leurs commandes
-    #     buttons = [
-    #         ("Create Customer", self.create_customer_window),
-    #         ("Update Customer", self.update_customer_window),
-    #         ("Update Contract", self.update_contract_window),
-    #         ("Contract Filter", self.contract_filter_window)
-    #     ]
-
-    #     for text, command in buttons:
-    #         # Créer un bouton
-    #         button = tk.Button(self.parent, text=text, command=command)
-    #         button.grid(row=row, column=column, padx=5, pady=5)  # Placer le bouton à la position donnée
-    #         column += 1
-    #         if column > 3:
-    #             column = 0
-    #             row += 1
 
     def create_customer_window(self):
         """
@@ -98,6 +82,88 @@ class CommercialView(QWidget):
         dialog.setLayout(form_layout)
         dialog.exec()
 
+    def update_customer_window(self):
+        """
+        Ouvre une fenêtre modale pour mettre à jour un client.
+        """
+        # Fenêtre modale pour mettre à jour un client
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Update Customer")
+        form_layout = QFormLayout()
+
+        customers = get_customers_commercial(self.controller.authenticated_user, self.controller.session)
+        customer_combobox = QComboBox()
+        customer_data_dict = {}  # Dictionnaire pour stocker les données des clients avec leur ID
+
+        for customer in customers:
+            customer_display = f"{customer['id']} - {customer['first_name']} {customer['last_name']}"
+            customer_combobox.addItem(customer_display, customer['id'])
+            customer_data_dict[customer['id']] = customer  # Stocker les données des clients par ID
+
+        form_layout.addRow("Customer:", customer_combobox)
+        first_name_entry = QLineEdit()
+        form_layout.addRow("Customer First Name:", first_name_entry)
+
+        last_name_entry = QLineEdit()
+        form_layout.addRow("Customer Last Name:", last_name_entry)
+
+        email_entry = QLineEdit()
+        form_layout.addRow("Customer Email:", email_entry)
+
+        company_name_entry = QLineEdit()
+        form_layout.addRow("Company Name:", company_name_entry)
+
+        # Fonction pour mettre à jour les champs de texte avec les données du client sélectionné
+        def update_fields():
+            selected_customer_id = customer_combobox.currentData()
+            selected_customer = customer_data_dict.get(selected_customer_id, {})
+
+            # Préremplir les champs avec les informations du client
+            first_name_entry.setText(selected_customer.get('first_name', ''))
+            last_name_entry.setText(selected_customer.get('last_name', ''))
+            email_entry.setText(selected_customer.get('email', ''))
+            company_name_entry.setText(selected_customer.get('company_name', ''))
+
+        # Connecter l'événement de changement de sélection de la combobox à la fonction
+        customer_combobox.currentIndexChanged.connect(update_fields)
+
+        # Remplir automatiquement les champs lorsque le client est sélectionné
+        update_fields()
+
+        # Boutons pour soumettre ou annuler
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(lambda: self.update_customer(
+            dialog,
+            customer_combobox.currentData(),
+            first_name_entry.text(),
+            last_name_entry.text(),
+            email_entry.text(),
+            company_name_entry.text()
+        ))
+        buttons.rejected.connect(dialog.reject)
+        form_layout.addWidget(buttons)
+
+        # Appliquer le layout à la fenêtre modale
+        dialog.setLayout(form_layout)
+        dialog.exec()
+
+    def update_customer(self, dialog,customer_id, first_name, last_name, email, company_name):
+        customer_data = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+            'company_name': company_name,
+        }
+
+            # Appel au contrôleur pour mettre à jour le client
+        try:
+            updated_customer = self.controller.update_customer(customer_id, **customer_data)
+            QMessageBox.information(self, "Success", "Customer updated successfully.")
+            dialog.accept()  # Ferme la fenêtre après succès
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred: {e}")
     def create_customer(self, dialog, first_name, last_name, email, company_name):
         """
         Appelle le contrôleur pour créer un nouveau client avec les données fournies.
