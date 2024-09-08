@@ -14,7 +14,7 @@ class ManagementController:
 
     @require_permission('create_contract')
     def create_contract(self, customer_id, **contract_data):
-        customer = self.session.query(Customer).get(customer_id)
+        customer = self.session.query(Customer).filter_by(id=customer_id).first()
         commercial_contact_id = customer.commercial_contact_id
         new_contract = Contract(
             amount_due=contract_data['amount_due'],

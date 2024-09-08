@@ -1,12 +1,6 @@
-import tkinter as tk
-from tkinter import messagebox
-from helpers.get_data import *
-
 import sys
 
-import tkinter as tk
-from tkinter import messagebox
-
+from helpers.get_data import *
 
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QIcon, QAction, Qt
@@ -65,10 +59,6 @@ class MainWindow(QMainWindow):
         report_menu.addAction(customer_list_action)
         report_menu.addAction(contract_list_action)
         report_menu.addAction(event_list_action)
-
-
-
-
 
     
     def view_customers(self):

@@ -40,7 +40,8 @@ class BaseTest(unittest.TestCase):
             'password':"securepassword"
         }
         self.customer_data = {
-            'name': 'Jean Dupont',
+            'first_name': 'Jean',
+            'last_name': 'Dupont',
             'email': 'jean@contact.com',
             'company_name': 'event corp'
         }
