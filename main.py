@@ -32,12 +32,15 @@ if __name__ == "__main__":
     app.setStyleSheet(stylesheet)
 
     session = SessionLocal()
-    main_window = MainWindow()
-    controller = AuthenticationController(session, main_window)
-    main_window.set_controller(controller)
-    controller.show_login_view()
-    main_window.show()
-    sys.exit(app.exec())
+    try:
+        main_window = MainWindow()
+        controller = AuthenticationController(session, main_window)
+        main_window.set_controller(controller)
+        controller.show_login_view()
+        main_window.show()
+        sys.exit(app.exec())
+    finally:
+        session.close()
 
 
 
