@@ -33,9 +33,12 @@ class ManagementView(QWidget):
         self.update_user_button = QPushButton("Update an Employee")
         self.update_user_button.clicked.connect(self.update_user_window)
 
+        self.delete_user_button = QPushButton("Delete an Employee")
+        self.delete_user_button.clicked.connect(self.delete_user_window)
+
         widgets = [
             self.create_user_button, self.create_contract_button,
-            self.update_user_button
+            self.update_user_button, self.delete_user_button
         ]
         columns = 2
 
@@ -262,6 +265,58 @@ class ManagementView(QWidget):
             QMessageBox.warning(self, "Error", str(e))
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
+
+    def delete_user_window(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Update an Employee")
+        users = self.controller.get_user_list()
+        authenticated_user_id = self.controller.authenticated_user.id
+        form_layout = QFormLayout()
+
+        self.user_combobox = QComboBox()
+        for user in users:
+            if user['id'] != authenticated_user_id:
+                user_name = f"{user['first_name']} {user['last_name']} - {user['id']}"
+                self.user_combobox.addItem(user_name, user['id'])
+        form_layout.addRow("Select Customer:", self.user_combobox)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(lambda: self.confirm_delete_user(dialog))
+        buttons.rejected.connect(dialog.reject)
+        form_layout.addWidget(buttons)
+
+        dialog.setLayout(form_layout)
+        dialog.exec()
+
+    def confirm_delete_user(self, dialog):
+        selected_user_id = self.user_combobox.currentData()
+        selected_user_name = self.user_combobox.currentText()
+        confirmation = QMessageBox.question(
+            self,
+            'Confirm Delete User',
+            f"Are you sure you want to delete the user {selected_user_name} ?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        if confirmation == QMessageBox.Yes:
+            self.delete_user(dialog, selected_user_id)
+        else:
+            QMessageBox.information(dialog, 'Cancelled', 'User deletion cancelled')
+
+    def delete_user(self,dialog, user_id):
+        try:
+            result_message = self.controller.delete_user(user_id)
+            QMessageBox.information(dialog, "Success", result_message)
+            self.accept()  # Ferme la fenêtre après suppression
+
+        except ValueError as e:
+            print(e)
+            # Message personnalisé pour l'erreur d'intégrité des contrats liés
+            QMessageBox.warning(
+                dialog,
+                "Error",
+                "This user is associated with existing contracts. Please reassign the contracts before deleting the user."
+                )
 
 
 
