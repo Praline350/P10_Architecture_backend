@@ -30,8 +30,12 @@ class ManagementView(QWidget):
         self.create_user_button = QPushButton("Creare New Employee")
         self.create_user_button.clicked.connect(self.create_user_window)
 
+        self.update_user_button = QPushButton("Update an Employee")
+        self.update_user_button.clicked.connect(self.update_user_window)
+
         widgets = [
-            self.create_user_button, self.create_contract_button
+            self.create_user_button, self.create_contract_button,
+            self.update_user_button
         ]
         columns = 2
 
@@ -114,7 +118,6 @@ class ManagementView(QWidget):
 
         last_name_entry = QLineEdit()
         form_layout.addRow("Last Name:", last_name_entry)
-
         
         password_entry = QLineEdit()
         password_entry.setEchoMode(QLineEdit.Password)
@@ -126,7 +129,7 @@ class ManagementView(QWidget):
         email_entry = QLineEdit()
         form_layout.addRow("Email:", email_entry)
 
-        roles = get_roles_list()
+        roles = get_roles_without_admin()
         roles_combobox = QComboBox()
         if roles:
             for role in roles:
@@ -167,6 +170,102 @@ class ManagementView(QWidget):
             dialog.accept()  # Ferme la fenêtre après succès
         except PermissionError as e:
             QMessageBox.warning(self, "Permission Denied", str(e))
+
+    def update_user_window(self):
+        """
+        Ouvre une fenêtre modale pour udpate un utilisateur.
+        """
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Update an Employee")
+        users = self.controller.get_user_list()
+        form_layout = QFormLayout()
+
+        user_combobox = QComboBox()
+        user_data_dict = {}
+        for user in users:
+            user_name = f"{user['first_name']} {user['last_name']} - {user['id']}"
+            user_combobox.addItem(user_name, user['id'])
+            user_data_dict[user['id']] = user
+        form_layout.addRow("Select Customer:", user_combobox)
+
+        first_name_entry = QLineEdit()
+        form_layout.addRow("First Name:", first_name_entry)
+
+        last_name_entry = QLineEdit()
+        form_layout.addRow("Last Name:", last_name_entry)
+
+        username_entry = QLineEdit()
+        form_layout.addRow("username:", username_entry)
+
+        employee_number_entry = QLineEdit()
+        form_layout.addRow("Employee Number:", employee_number_entry)
+
+        email_entry = QLineEdit()
+        form_layout.addRow("Email:", email_entry)
+
+        roles = get_roles_without_admin()
+        roles_combobox = QComboBox()
+        if roles:
+            for role in roles:
+                roles_combobox.addItem(role)
+        form_layout.addRow("Select Role:", roles_combobox)
+
+                # Fonction pour mettre à jour les champs de texte avec les données du client sélectionné
+        def update_fields():
+            selected_user_id = user_combobox.currentData()  # Obtenir l'ID de l'utilisateur sélectionné
+            selected_user = user_data_dict.get(selected_user_id, {})  # Récupérer les données de l'utilisateur
+
+            # Préremplir les champs avec les informations de l'utilisateur
+            first_name_entry.setText(selected_user.get('first_name', ''))
+            last_name_entry.setText(selected_user.get('last_name', ''))
+            username_entry.setText(selected_user.get('username', ''))
+            employee_number_entry.setText(str(selected_user.get('employee_number', '')))
+            email_entry.setText(selected_user.get('email', ''))
+            roles_combobox.setCurrentText(str(selected_user.get('role', '')))
+
+        # Connecter l'événement de changement de sélection de la combobox à la fonction
+        user_combobox.currentIndexChanged.connect(update_fields)
+        update_fields()
+
+        # Boutons pour soumettre ou annuler
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(lambda: self.update_user(
+            dialog,
+            user_combobox.currentData(),
+            first_name_entry.text(),
+            last_name_entry.text(),
+            username_entry.text(),
+            employee_number_entry.text(),
+            email_entry.text(),
+            roles_combobox.currentData()
+        ))
+        buttons.rejected.connect(dialog.reject)
+        form_layout.addWidget(buttons)
+
+        dialog.setLayout(form_layout)
+        dialog.exec()
+
+    def update_user(self, dialog, user_id, first_name, last_name, username,  employee_number, email, role):
+        user_data = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'username': username, 
+            'employee_number': employee_number,
+            'email': email,
+            'role': role
+        }
+        try:
+            updated_user = self.controller.update_user(user_id, **user_data)
+            QMessageBox.information(self, "Success", f"{user_data['last_name']} updated successfully.")
+            dialog.accept()
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred: {e}")
+
+
+
+
 
 
 
