@@ -83,11 +83,16 @@ class User(Base, BaseModelMixin):
     
     @staticmethod
     def validate_username(username):
+        if not username:
+            return False
         return bool(re.match("^[a-zA-Z0-9_.-]+$", username))
 
     @staticmethod
     def validate_employee_number(employee_number):
-        return employee_number.isdigit() and len(employee_number) <= 3
+        if not employee_number:
+            return False
+        employee_number_str = str(employee_number)
+        return employee_number_str.isdigit() and len(employee_number_str) <= 3
 
     @staticmethod
     def validate_password(password):
