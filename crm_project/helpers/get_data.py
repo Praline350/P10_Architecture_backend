@@ -13,6 +13,14 @@ def get_roles_list():
     except Exception as e:
         print(f"Error while retrieving roles: {e}")
         return None
+    
+def get_roles_without_admin():
+    try:
+        roles = roles = [role.name for role in RoleName if role.name != 'ADMIN']
+        return roles
+    except Exception as e:
+        print(f"Error while retrieving roles: {e}")
+        return None
 
 
 def get_customers_commercial(user, session):
@@ -77,6 +85,19 @@ def get_contracts_list(session):
         session.rollback()
         print(f"Error during get contracts: {e}")
         return None
+    
+
+def get_users(session):
+    try:
+        users = session.query(User).all()
+        print(users)
+        return users
+    
+    except SQLAlchemyError as e:
+        session.rollback()
+        print(f"Error during get users: {e}")
+        return None
+    
     
 
     
