@@ -36,19 +36,24 @@ class CommercialController:
     
     @require_permission('update_contract')
     def update_contract(self, customer_id, contract_id, **kwargs):
-        customer = self.session.query(Customer).filter_by(id=customer_id).first()
-        if not customer:
-            raise ValueError(f"Customer {customer_id} not found.")
-        contract = self.session.query(Contract).filter_by(id=contract_id,customer_id=customer.id).first()
-        if not contract:
-            raise ValueError(f"Contract {contract_id} for customer {customer_id} not found.")
-        for key, value in kwargs.items():
-            setattr(contract, key, value)
-        self.session.commit()
-        return contract
+        try:
+            customer = self.session.query(Customer).filter_by(id=customer_id).first()
+            if not customer:
+                raise ValueError(f"Customer {customer_id} not found.")
+            contract = self.session.query(Contract).filter_by(id=contract_id,customer_id=customer.id).first()
+            if not contract:
+                raise ValueError(f"Contract {contract_id} for customer {customer_id} not found.")
+            for key, value in kwargs.items():
+                setattr(contract, key, value)
+            self.session.commit()
+            return contract
+        except Exception as e:
+            self.session.rollback()  # Annuler en cas d'erreur
+            raise ValueError(f"An error occurred while updating contract: {str(e)}")
+
     
 
-
+    @require_permission('get_contracts')
     def contract_filter(self, filter_data):
         query = self.session.query(Contract)
 

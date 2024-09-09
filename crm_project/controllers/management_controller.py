@@ -48,3 +48,30 @@ class ManagementController:
         except IntegrityError:
             self.session.rollback()
             raise ValueError("L'utilisateur avec cet email ou ce nom d'utilisateur existe déjà.")
+
+    @require_permission('update_user')
+    def update_user(self, user_id, **user_data):
+        try:
+            user = self.session.query(User).filter_by(id=user_id).first()
+            if not user:
+                raise ValueError(f"user {user_id} not found")
+            for key, value in user_data.items():
+                if hasattr(user, key):
+                    setattr(user, key, value)
+            self.session.commit()
+            return user
+        except Exception as e:
+            self.session.rollback()  # Annuler en cas d'erreur
+            raise ValueError(f"An error occurred while updating the user: {str(e)}")
+
+    @require_permission('update_user')
+    def get_user_list(self):
+        try:
+            users = self.session.query(User).all()
+            user_list = [user.to_dict() for user in users]
+            return user_list
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            print(f"Error during get users: {e}")
+            return None
+
