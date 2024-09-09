@@ -31,6 +31,10 @@ class ManagementController:
         try:
             username = f"{user_data['first_name']}.{user_data['last_name']}"
             role = self.session.query(Role).filter_by(name=user_data['role']).one()
+            if not User.validate_username(username):
+                raise ValueError("Invalid username")
+            if not User.validate_employee_number(user_data['employee_number']):
+                raise ValueError("Invalid employee number")
             new_user = User(
                 first_name=user_data['first_name'],
                 last_name=user_data['last_name'],
@@ -53,16 +57,35 @@ class ManagementController:
     def update_user(self, user_id, **user_data):
         try:
             user = self.session.query(User).filter_by(id=user_id).first()
+            role = self.session.query(Role).filter_by(name=user_data['role']).one()
+            user_data['role'] = role
             if not user:
                 raise ValueError(f"user {user_id} not found")
+            if not User.validate_username(user_data['username']):
+                raise ValueError("Invalid username")
+            if not User.validate_employee_number(user_data['employee_number']):
+                raise ValueError("Invalid employee number")
             for key, value in user_data.items():
                 if hasattr(user, key):
                     setattr(user, key, value)
             self.session.commit()
             return user
         except Exception as e:
-            self.session.rollback()  # Annuler en cas d'erreur
+            self.session.rollback()  
             raise ValueError(f"An error occurred while updating the user: {str(e)}")
+    
+    @require_permission('delete_user')
+    def delete_user(self, user_id):
+        try:
+            user = self.session.query(User).filter_by(id=user_id).first()
+            if not user:
+                raise ValueError(f"User with ID {user_id} not found.")
+            self.session.delete(user)
+            self.session.commit()
+            return f"User {user.username} successfully deleted."
+        except Exception as e:
+            self.session.rollback() 
+            raise ValueError(f"An error occurred while deleting the user: {str(e)}")
 
     @require_permission('update_user')
     def get_user_list(self):
@@ -74,4 +97,3 @@ class ManagementController:
             self.session.rollback()
             print(f"Error during get users: {e}")
             return None
-
