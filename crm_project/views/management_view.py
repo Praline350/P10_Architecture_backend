@@ -206,12 +206,6 @@ class ManagementView(QWidget):
         email_entry = QLineEdit()
         form_layout.addRow("Email:", email_entry)
 
-        roles = get_roles_without_admin()
-        roles_combobox = QComboBox()
-        if roles:
-            for role in roles:
-                roles_combobox.addItem(role)
-        form_layout.addRow("Select Role:", roles_combobox)
 
                 # Fonction pour mettre à jour les champs de texte avec les données du client sélectionné
         def update_fields():
@@ -224,7 +218,7 @@ class ManagementView(QWidget):
             username_entry.setText(selected_user.get('username', ''))
             employee_number_entry.setText(str(selected_user.get('employee_number', '')))
             email_entry.setText(selected_user.get('email', ''))
-            roles_combobox.setCurrentText(str(selected_user.get('role', '')))
+
 
         # Connecter l'événement de changement de sélection de la combobox à la fonction
         user_combobox.currentIndexChanged.connect(update_fields)
@@ -239,8 +233,7 @@ class ManagementView(QWidget):
             last_name_entry.text(),
             username_entry.text(),
             employee_number_entry.text(),
-            email_entry.text(),
-            roles_combobox.currentData()
+            email_entry.text()
         ))
         buttons.rejected.connect(dialog.reject)
         form_layout.addWidget(buttons)
@@ -248,14 +241,13 @@ class ManagementView(QWidget):
         dialog.setLayout(form_layout)
         dialog.exec()
 
-    def update_user(self, dialog, user_id, first_name, last_name, username,  employee_number, email, role):
+    def update_user(self, dialog, user_id, first_name, last_name, username,  employee_number, email ):
         user_data = {
             'first_name': first_name,
             'last_name': last_name,
             'username': username, 
             'employee_number': employee_number,
             'email': email,
-            'role': role
         }
         try:
             updated_user = self.controller.update_user(user_id, **user_data)
@@ -307,7 +299,7 @@ class ManagementView(QWidget):
         try:
             result_message = self.controller.delete_user(user_id)
             QMessageBox.information(dialog, "Success", result_message)
-            self.accept()  # Ferme la fenêtre après suppression
+            dialog.accept()  # Ferme la fenêtre après suppression
 
         except ValueError as e:
             print(e)

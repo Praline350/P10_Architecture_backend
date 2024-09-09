@@ -57,8 +57,6 @@ class ManagementController:
     def update_user(self, user_id, **user_data):
         try:
             user = self.session.query(User).filter_by(id=user_id).first()
-            role = self.session.query(Role).filter_by(name=user_data['role']).one()
-            user_data['role'] = role
             if not user:
                 raise ValueError(f"user {user_id} not found")
             if not User.validate_username(user_data['username']):

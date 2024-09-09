@@ -38,11 +38,14 @@ class CommercialView(QWidget):
         self.update_customer_button.clicked.connect(self.update_customer_window)
         self.get_filter_contract_button = QPushButton("Get Filter Contracts")
         self.get_filter_contract_button.clicked.connect(self.filter_contract_window)
+        self.update_contract_button = QPushButton("Update a Contract")
+        self.update_contract_button.clicked.connect(self.update_contract_window)
 
         widgets = [
             self.create_customer_button,
             self.update_customer_button,
-            self.get_filter_contract_button
+            self.get_filter_contract_button,
+            self.update_contract_button
         ]
 
         columns = 2
@@ -131,7 +134,7 @@ class CommercialView(QWidget):
         for customer in customers:
             customer_display = f"{customer['id']} - {customer['first_name']} {customer['last_name']}"
             customer_combobox.addItem(customer_display, customer['id'])
-            customer_data_dict[customer['id']] = customer  # Stocker les données des clients par ID
+            customer_data_dict[customer['id']] = customer  
 
         form_layout.addRow("Customer:", customer_combobox)
         first_name_entry = QLineEdit()
@@ -316,6 +319,7 @@ class CommercialView(QWidget):
         self.show_filtered_contracts(contracts)
 
     def show_filtered_contracts(self, contracts):
+
         """
         Affiche les contrats filtrés dans une nouvelle fenêtre.
         """
@@ -366,3 +370,32 @@ class CommercialView(QWidget):
             dialog.exec()
         else:
             QMessageBox.warning(self, "Error", "No contracts found.")
+
+    def update_contract_window(self):
+        pass
+    #         dialog = QDialog(self)
+    #         dialog.setWindowTitle("Udpate Contract")
+    #         # Layout principal
+    #         form_layout = QFormLayout()
+    #         contracts = get_contracts_list(self.controller.session)
+    #         self.contract_combobox = QComboBox()
+    #         contract_data_dict = {}
+    #         for contract in contracts:
+    #             self.contract_combobox.addItem(f"{contract.id} - {contract.customer.last_name}")
+    #             contract_data_dict[contract.id] = contract
+    #         form_layout.addRow('Select Contract', self.contract_combobox)
+
+    #         self.status_checkbox = QCheckBox("Contract Active")
+    #         form_layout.addRow("Status:", self.status_checkbox)
+
+    #         self.amount_due_entry = QLineEdit()
+    #         form_layout.addRow("Amount Due:", self.amount_due_entry)
+
+    #         self.remaining_amount_entry = QLineEdit()
+    #         form_layout.addRow("Remaining Amount:", self.remaining_amount_entry)
+
+    #         def update_fields():
+    #             selected_contract = self.contract_combobox.currentData()
+    #             selected_contract_id = self
+
+

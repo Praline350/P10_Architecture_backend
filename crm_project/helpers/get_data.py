@@ -98,6 +98,15 @@ def get_users(session):
         print(f"Error during get users: {e}")
         return None
     
+def get_commercials(session):
+    try:
+        commercials = session.query(User).filter_by(role=RoleName.COMMERCIAL)
+        return commercials
+    except SQLAlchemyError as e:
+        session.rollback()
+        print(f"Error during get users: {e}")
+        return None
+    
     
 
     
