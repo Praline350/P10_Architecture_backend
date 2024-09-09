@@ -2,6 +2,7 @@ venv/
 env/
 htmlcov/
 .coverage
+.coveragerc
 
 *.exe
 *.dll
