@@ -141,6 +141,12 @@ class TestManagementController(BaseIntegrationTest):
         self.customer = self.controller.create_customer(**self.customer_data)
         self.management_controller = ManagementController(self.session, self.user, self.login_controller)
 
+        self.updated_data = {
+            'username': 'Charly09',
+            'email': 'charly@email.com',
+            'employee_number': '1',
+        }
+
 
     def test_create_contract(self):
         new_contract = self.management_controller.create_contract(self.customer.id, **self.contract_data)
@@ -174,6 +180,41 @@ class TestManagementController(BaseIntegrationTest):
         with self.assertRaises(ValueError) as context:
             self.management_controller.create_user(**self.user_data3)
         self.assertEqual(str(context.exception), "L'utilisateur avec cet email ou ce nom d'utilisateur existe déjà.")
+
+    def test_update_employee(self):
+        user = self.management_controller.create_user(**self.user_data3)
+        self.assertEqual(user.username, f"{self.user_data3['first_name']}.{self.user_data3['last_name']}")
+
+        user_updated = self.management_controller.update_user(user.id, **self.updated_data)
+        self.assertEqual(user_updated.username, self.updated_data['username'])
+        self.assertEqual(user.email, self.updated_data['email'])
+
+    def test_update_employee_error(self):
+        unexistent_user_id = 57
+        user = self.management_controller.create_user(**self.user_data3)
+        self.assertEqual(user.username, f"{self.user_data3['first_name']}.{self.user_data3['last_name']}")
+        fake_data = {
+            'username': None,
+            'email': 'charly@email',
+            'employee_number': 'HEHE',
+
+        }
+        with self.assertRaises(ValueError) as context:
+            self.management_controller.update_user(unexistent_user_id, **self.updated_data)
+        self.assertIn(f"user {unexistent_user_id} not found", str(context.exception))
+        with self.assertRaises(ValueError) as context:
+            self.management_controller.update_user(user.id, **fake_data)
+        self.assertIn("Invalid username", str(context.exception))
+        fake_data['username'] = 'charly09'
+        with self.assertRaises(ValueError) as context:
+            self.management_controller.update_user(user.id, **fake_data)
+        self.assertIn("Invalid employee number", str(context.exception))
+
+
+
+
+
+
 
 
 
