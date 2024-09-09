@@ -227,10 +227,10 @@ class MainWindow(QMainWindow):
         title="Logout",
         message="Do you really want to logout?",
         buttons=QMessageBox.Yes | QMessageBox.No,
-        icon=QMessageBox.NoIcon  # Peut aussi être QMessageBox.NoIcon si tu ne veux pas d'icône
+        icon=QMessageBox.NoIcon 
         )
         if result:
-            self.menuBar().hide()  
+            self.menuBar().hide()
             self.controller.show_login_view()
  
 
