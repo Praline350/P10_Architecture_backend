@@ -1,7 +1,7 @@
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
+from crm_project.project.config import SessionLocal
 from crm_project.models import *
-
 from crm_project.views import *
 from crm_project.views.admin_view import AdminView
 from crm_project.controllers import *
@@ -33,6 +33,15 @@ class AuthenticationController:
 
 
     def login(self, username, employee_number, password):
+        if not User.validate_username(username):
+            print("Invalid username format.")
+            return None
+        if not User.validate_employee_number(employee_number):
+            print("Invalid employee number format.")
+            return None
+        if not User.validate_password(password):
+            print("Password must be at least 8 characters long.")
+            return None
         user = self.session.query(User).filter_by(username=username, employee_number=employee_number).first()
         if user and user.check_password(password):
             print(f"Login successful. User role: {user.role.name}")
@@ -57,16 +66,14 @@ class AuthenticationController:
                 print(f"No frame found for role: {role_name}")
                 return False
 
-
     def show_login_view(self):
-        self.authenticated_user = None
+        if self.authenticated_user:
+            self.authenticated_user = None
+        if self.session:
+            self.session.close()
+        self.session = SessionLocal()
         self.login_view = LoginWidget(self.main_window, self)
         self.main_window.setCentralWidget(self.login_view)
-
-
-    def close(self):
-        self.authenticated_user = None
-        self.session.close()
 
     def create_user(self, role=None, **user_data):
         if role is None:
