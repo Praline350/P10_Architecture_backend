@@ -65,7 +65,6 @@ class User(Base, BaseModelMixin):
 
     # ForeignKey to Role
     role_id = Column(Integer, ForeignKey('roles.id'))
-
     # RelationShip with Role
     role = relationship("Role", back_populates="users")
 
