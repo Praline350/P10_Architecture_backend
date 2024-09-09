@@ -1,9 +1,11 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Table, Enum
-from sqlalchemy.orm import relationship
+import re
 import enum
 import bcrypt
-from crm_project.project.config import Base
 
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Table, Enum
+from sqlalchemy.orm import relationship
+
+from crm_project.project.config import Base
 from  crm_project.models.mixin_model import BaseModelMixin
 
 
@@ -80,6 +82,20 @@ class User(Base, BaseModelMixin):
         # Retourne True si l'utilisateur a la permission passée en argument
         return any(permission.name == permission_name for permission in self.role.permissions)
     
+    @staticmethod
+    def validate_username(username):
+        return bool(re.match("^[a-zA-Z0-9_.-]+$", username))
+
+    @staticmethod
+    def validate_employee_number(employee_number):
+        return employee_number.isdigit() and len(employee_number) <= 3
+
+    @staticmethod
+    def validate_password(password):
+        return len(password) >= 4 # à changer ! (pour le dev pour l'instant)
+    
     def __repr__(self):
         return (f"<User(id={self.id}, username={self.username}, "
                 f"email={self.email})>")
+    
+
