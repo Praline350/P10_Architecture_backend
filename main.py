@@ -43,9 +43,3 @@ if __name__ == "__main__":
         session.close()
 
 
-
-    # controller = AuthenticationController(SessionLocal(),root)
-    # login_view = LoginView(root, controller)
-    # login_view.grid(row=0, column=0, sticky='nsew')
-    
-    # root.mainloop()

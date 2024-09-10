@@ -9,6 +9,8 @@ from crm_project.project.config import engine, Base, SessionLocal
 from crm_project.models import *
 from crm_project.controllers import *
 
+
+
 def run_coverage(test_path=None):
     """Exécuter les tests avec coverage."""
     # Ajouter crm_project au PYTHONPATH
