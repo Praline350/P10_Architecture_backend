@@ -28,8 +28,7 @@ def get_customers_commercial(user, session):
     # Retourne les client lié au commercial(user)
     try:
         commercial_customers = session.query(Customer).filter_by(commercial_contact_id=user.id).all()
-        customer_list = [customer.to_dict() for customer in commercial_customers]
-        return customer_list
+        return commercial_customers
     except SQLAlchemyError as e:
         session.rollback()
         print(f"Error during get customers: {e}")
@@ -51,8 +50,7 @@ def get_contract_commercial(user, session):
 def get_customers_list(session):
     try:
         customers = session.query(Customer).all()
-        customers_list = [customer.to_dict() for customer in customers]
-        return customers_list
+        return customers
     except SQLAlchemyError as e:
         session.rollback()
         print(f"Error during get customers: {e}")
