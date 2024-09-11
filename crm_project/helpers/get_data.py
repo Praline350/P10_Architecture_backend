@@ -3,7 +3,8 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from crm_project.project.permissions import *
 
 
-
+def get_customer_with_contract_id(contract_id, session):
+    customer = session.query()
 
 def get_roles_list():
     try:
@@ -41,8 +42,7 @@ def get_contract_commercial(user, session):
         if not customers_ids:
             return None
         contracts = session.query(Contract).filter(Contract.customer_id.in_(customers_ids)).all()
-        contract_list = [contract.to_dict() for contract in contracts]
-        return contract_list
+        return contracts
     except SQLAlchemyError as e:
         session.rollback()
         print(f"Error during get contracts: {e}")
@@ -107,6 +107,12 @@ def get_commercials(session):
         print(f"Error during get users: {e}")
         return None
     
-    
+
+def get_status_contract(contract_id, session):
+    contract = session.query(Contract).filter_by(id=contract_id).first()
+    if contract.remaining_amount > 0:
+        return False
+    else:
+        return True    
 
     
