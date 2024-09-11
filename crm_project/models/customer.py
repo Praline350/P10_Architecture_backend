@@ -26,7 +26,7 @@ class Customer(Base, BaseModelMixin):
     contracts = relationship("Contract", back_populates="customer", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<Customer(name={self.name}, email={self.email})>"
+        return f"<Customer(last_name={self.last_name} fist_name={self.first_name})>"
     
 
 # Événements SQLAlchemy pour mettre à jour automatiquement les dates
