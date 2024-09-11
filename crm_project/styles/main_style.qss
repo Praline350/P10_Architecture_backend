@@ -8,6 +8,14 @@
     margin: 15px;
 }
 
+
+
+#label_customer_info {
+    padding:10px;
+    border: 1px solid grey;
+    border-radius: 8px;
+}
+
 #label_titre{
     padding: 10px;
     text-decoration: underline;
