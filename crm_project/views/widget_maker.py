@@ -12,17 +12,28 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
                                )
 
 
-def mk_create_dialog_window(self, title):
+def mk_setup_widgets(self, layout, grid, columns, widgets):
+    for index, widget in enumerate(widgets):
+        row = index // columns
+        column = index % columns
+        grid.addWidget(widget, row, column)
+        widget.setObjectName('management_buttons')
+        layout.addLayout(grid)
+        layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        self.setLayout(layout)
+
+def mk_create_dialog_window(parent, title):
     # Créer la fenêtre modale
-    self.dialog = QDialog(self)
-    self.dialog.setWindowTitle(title)
-    self.form_layout = QFormLayout()
+    dialog = QDialog(parent)
+    dialog.setWindowTitle(title)
+    return dialog
 
 
 def mk_create_combox_id_name(self, items, display_names, obj_name):
     """
         Créer une combobox avec le nom et l'id de l'objet.
         L'ajoute au layout, retourne l'id dans current_data()
+        :self.data_dict:  associe les id au items
     """
     self.data_dict = {}
     self.combobox = QComboBox()
@@ -31,7 +42,15 @@ def mk_create_combox_id_name(self, items, display_names, obj_name):
         self.data_dict[item.id] = item 
     self.form_layout.addRow(f"Select {obj_name}:", self.combobox)
 
-
+def mk_display_current_item(label, item):
+    info_text = "<ul>"
+    if item:
+        for key, value in item.items():
+            info_text += f"<li><b><u>{key}</u>:</b>     {value}</li>"
+        info_text += f"</ul>"
+    else:
+        info_text = f"{item} Info: No {item} selected"
+    label.setText(info_text)
 
 def mk_create_edit_lines(self, fields_dict):
     """
