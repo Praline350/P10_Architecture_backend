@@ -35,14 +35,11 @@ class CommercialController:
         return customer
     
     @require_permission('update_contract')
-    def update_contract(self, customer_id, contract_id, **kwargs):
+    def update_contract(self, contract_id, **kwargs):
         try:
-            customer = self.session.query(Customer).filter_by(id=customer_id).first()
-            if not customer:
-                raise ValueError(f"Customer {customer_id} not found.")
-            contract = self.session.query(Contract).filter_by(id=contract_id,customer_id=customer.id).first()
+            contract = self.session.query(Contract).filter_by(id=contract_id).first()
             if not contract:
-                raise ValueError(f"Contract {contract_id} for customer {customer_id} not found.")
+                raise ValueError(f"Contract {contract_id} not found.")
             for key, value in kwargs.items():
                 setattr(contract, key, value)
             self.session.commit()
