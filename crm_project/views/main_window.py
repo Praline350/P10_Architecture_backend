@@ -1,6 +1,7 @@
 import sys
 
 from crm_project.helpers.get_data import *
+from crm_project.views.widget_maker import *
 
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QIcon, QAction, Qt
@@ -64,161 +65,43 @@ class MainWindow(QMainWindow):
     def view_customers(self):
         customers = self.controller.session.query(Customer).all()
         if customers:
-            # Créer une nouvelle boîte de dialogue pour afficher les contrats
-            dialog = QDialog(self)
-            dialog.setWindowTitle("Customers List")
-
-            # Layout principal
-            layout = QVBoxLayout()
-
-            # Créer un en-tête pour les informations des contrats
-            header = QLabel("Customers Information")
-            header.setStyleSheet("font-size: 16px; font-weight: bold;")
-            layout.addWidget(header)
-
-            # Tableau pour afficher les contrats 
-            table = QTableWidget()
-            table.setColumnCount(8)
-            table.setHorizontalHeaderLabels(["Customer ID",
-                                             "First Name",
-                                             "Last Name",
-                                             "Email",
-                                             "Company Name",
-                                             "Commercial Contact",
-                                             "Creation Date",
-                                             "Last Update"
-                                             ])
-            table.setRowCount(len(customers)) 
-            for i, customer in enumerate(customers):
-                table.setItem(i, 0, QTableWidgetItem(str(customer.id)))
-                table.setItem(i, 1, QTableWidgetItem(str(customer.first_name)))
-                table.setItem(i, 2, QTableWidgetItem(str(customer.last_name)))
-                table.setItem(i, 3, QTableWidgetItem(str(customer.email)))
-                table.setItem(i, 4, QTableWidgetItem(str(customer.company_name)))
-                table.setItem(i, 5, QTableWidgetItem(
-                    str(f"{customer.commercial_contact.first_name} - {customer.commercial_contact.last_name}"
-                        )))
-                table.setItem(i, 6, QTableWidgetItem(customer.creation_date.strftime('%Y-%m-%d')))
-                table.setItem(i, 7, QTableWidgetItem(customer.last_update.strftime('%Y-%m-%d')))
-
-            table.resizeColumnsToContents()
-            # Ajouter le tableau et le bouton de fermeture au layout
-            layout.addWidget(table)
-            close_button = QPushButton("Close")
-            close_button.clicked.connect(dialog.accept)
-            layout.addWidget(close_button)
-
-            # Appliquer le layout à la boîte de dialogue et l'afficher
-            dialog.setLayout(layout)
-            dialog.resize(850,400 )  # Dimensionner la fenêtre à 600x400 pixels
-            dialog.exec()
+            # Préparer les list à afficher
+            labels_list = ["Customer ID", "First Name", "Last Name", "Email", "Company Name", 
+                        "Commercial Contact", "Creation Date", "Last Update"]
+            attributes_list = ["id", "first_name", "last_name", "email", "company_name", 
+                            "commercial_contact", "creation_date", "last_update"]
+            # Créer la table
+            table = mk_create_table(labels_list, customers, attributes_list)
+            # Affiche la fenêtre avec le tableau
+            mk_create_table_window(self, "Customer tabel", 'Customer Informations', table)
         else:
             QMessageBox.warning(self, "Error", "No customers found.")
 
     def view_events(self):
         events = get_events_list(self.controller.session)
         if events:
-            # Créer une nouvelle boîte de dialogue pour afficher les contrats
-            dialog = QDialog(self)
-            dialog.setWindowTitle("Event List")
+            labels_list =  ["Event ID","contract ID", "Name", "Support Contact",
+                            "Customer", "Start Date","End Date", "Location",
+                            "Attendees", "Comment"]
+            attributes_list = ["id", "contract_id", "name","support_contact", "customer",
+                               "start_date", "end_date", "location", "attendees", "comment"]
+            table = mk_create_table(labels_list, events, attributes_list)
+            mk_create_table_window(self, "Events Table", "Event Informations", table)
 
-            # Layout principal
-            layout = QVBoxLayout()
-
-            # Créer un en-tête pour les informations des contrats
-            header = QLabel("Event Information")
-            header.setStyleSheet("font-size: 16px; font-weight: bold;")
-            layout.addWidget(header)
-
-            # Tableau pour afficher les contrats 
-            table = QTableWidget()
-            table.setColumnCount(10)
-            table.setHorizontalHeaderLabels(["Event ID",
-                                             "contract ID",
-                                             "Name",
-                                             "Support Contact",
-                                             "Customer",
-                                             "Start Date",
-                                             "End Date",
-                                             "Location",
-                                             "Attendees",
-                                             "Comment"
-                                             ])
-            table.setRowCount(len(events))
-            for i, event in enumerate(events):
-                table.setItem(i, 0, QTableWidgetItem(str(event.id)))
-                table.setItem(i, 1, QTableWidgetItem(str(event.contract_id)))
-                table.setItem(i, 2, QTableWidgetItem(str(event.name)))
-                table.setItem(i, 3, QTableWidgetItem(str(event.support_contact.last_name)))
-                table.setItem(i, 4, QTableWidgetItem(str(event.customer.name)))
-                table.setItem(i, 5, QTableWidgetItem(event.start_date.strftime('%Y-%m-%d')))
-                table.setItem(i, 6, QTableWidgetItem(event.end_date.strftime('%Y-%m-%d')))
-                table.setItem(i, 7, QTableWidgetItem(str(event.location)))
-                table.setItem(i, 8, QTableWidgetItem(str(event.attendees)))
-                table.setItem(i, 9, QTableWidgetItem(str(event.comment)))
-
-            table.resizeColumnsToContents()
-            # Ajouter le tableau et le bouton de fermeture au layout
-            layout.addWidget(table)
-            close_button = QPushButton("Close")
-            close_button.clicked.connect(dialog.accept)
-            layout.addWidget(close_button)
-
-            # Appliquer le layout à la boîte de dialogue et l'afficher
-            dialog.setLayout(layout)
-            dialog.resize(800,400 )  # Dimensionner la fenêtre à 600x400 pixels
-            dialog.exec()
         else:
             QMessageBox.warning(self, "Error", "No Event found.")
 
     def view_contracts(self):
         contracts = get_contracts_list(self.controller.session)
         if contracts:
-            # Créer une nouvelle boîte de dialogue pour afficher les contrats
-            dialog = QDialog(self)
-            dialog.setWindowTitle("Contracts List")
-
-            # Layout principal
-            layout = QVBoxLayout()
-
-            # Créer un en-tête pour les informations des contrats
-            header = QLabel("Contracts Information")
-            header.setStyleSheet("font-size: 16px; font-weight: bold;")
-            layout.addWidget(header)
-
-            # Tableau pour afficher les contrats 
-            table = QTableWidget()
-            table.setColumnCount(8)
-            table.setHorizontalHeaderLabels(["Contract ID",
-                                             "Status",
-                                             "Customer",
-                                             "Commercial Contact",
-                                             "Creation Date",
-                                             "Last Update",
-                                             "Amount Due",
-                                             "Remaining Amount"
-                                             ])
-            table.setRowCount(len(contracts))
-            for i, contract in enumerate(contracts):
-                table.setItem(i, 0, QTableWidgetItem(str(contract.id)))
-                table.setItem(i, 1, QTableWidgetItem("Active" if contract.status else "Inactive"))
-                table.setItem(i, 2, QTableWidgetItem(str(f"{contract.customer.last_name} - {contract.customer.first_name}")))
-                table.setItem(i, 3, QTableWidgetItem(str(f"{contract.commercial_contact.last_name}- {contract.commercial_contact.first_name}")))
-                table.setItem(i, 4, QTableWidgetItem(contract.creation_date.strftime('%Y-%m-%d')))
-                table.setItem(i, 5, QTableWidgetItem(contract.last_update.strftime('%Y-%m-%d')))
-                table.setItem(i, 6, QTableWidgetItem(str(contract.amount_due)))
-                table.setItem(i, 7, QTableWidgetItem(str(contract.remaining_amount)))
-            table.resizeColumnsToContents()
-            # Ajouter le tableau et le bouton de fermeture au layout
-            layout.addWidget(table)
-            close_button = QPushButton("Close")
-            close_button.clicked.connect(dialog.accept)
-            layout.addWidget(close_button)
-
-            # Appliquer le layout à la boîte de dialogue et l'afficher
-            dialog.setLayout(layout)
-            dialog.resize(850,400 )  # Dimensionner la fenêtre à 600x400 pixels
-            dialog.exec()
+            labels_list = ["Contract ID", "Status", "Customer",
+                           "Commercial Contact", "Creation Date", "Last Update",
+                           "Amount Due", "Remaining Amount"]
+            attributes_list = ['id', 'status', 'customer', 'commercial_contact',
+                               'creation_date', 'last_update', 'amount_due',
+                               'remaining_amount']
+            table = mk_create_table(labels_list, contracts, attributes_list)
+            mk_create_table_window(self, "Contract Table", "Contract Informations", table)
         else:
             QMessageBox.warning(self, "Error", "No contracts found.")
 

@@ -1,4 +1,21 @@
+"""
+Description : 
+    Brève description du but du script, de ce qu'il fait, et de son contexte.
+    Cela peut inclure un résumé des fonctionnalités principales.
 
+Usage :
+    Décrit comment utiliser le script, en fournissant des exemples de la ligne de commande ou en expliquant 
+    les entrées et sorties principales.
+
+Dépendances :
+    Liste des bibliothèques externes nécessaires au fonctionnement du script (modules standard, bibliothèques tierces).
+    Ex : PySide6, SQLAlchemy, etc.
+
+Entrées :
+    Décrit les paramètres ou les données nécessaires au script, si applicable.
+    Ex : les paramètres d'entrée des fonctions principales ou les arguments de la ligne de commande.
+
+"""
 
 from crm_project.helpers.get_data import *
 from crm_project.views import *
@@ -23,6 +40,9 @@ class CommercialView(QWidget):
         self.setup_widgets()
 
     def setup_widgets(self):
+        """
+            Setup dynamiquement les widgets pour les différente fonctionnalités dans une grid
+        """
         layout = QVBoxLayout()
 
         welcome_label = QLabel(f"Commercial Dashboard, Welcome {self.authenticated_user.first_name} {self.authenticated_user.last_name}")
@@ -51,21 +71,21 @@ class CommercialView(QWidget):
 
         columns = 2
 
+        # Créer dynamiquement les cellule de la grid 
         for index, widget in enumerate(widgets):
             row = index // columns
             column = index % columns
             grid.addWidget(widget, row, column)
+            # Encapsule dans un nom pour le qss
             widget.setObjectName('management_buttons')
         layout.addLayout(grid)
         layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
         self.setLayout(layout)
         
-
     def create_customer_window(self):
         """
         Ouvre une fenêtre modale pour créer un customer.
         """
-        # Fenêtre modale pour créer un contrat
         mk_create_dialog_window(self, 'Create a New Customer')
 
         fields_dict = {
@@ -76,7 +96,6 @@ class CommercialView(QWidget):
         }
         mk_create_edit_lines(self, fields_dict)
 
-        # Boutons pour soumettre ou annuler
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(lambda: self.create_customer(
             first_name=self.field_entries['first_name'].text(),
@@ -106,6 +125,7 @@ class CommercialView(QWidget):
         """
         Ouvre une fenêtre modale pour mettre à jour un client.
         """
+
         mk_create_dialog_window(self, "Update a Customer")
         customers = get_customers_commercial(self.controller.authenticated_user, self.controller.session)
         display_names = [f"{customer.id} - {customer.last_name}" for customer in customers]
@@ -139,7 +159,6 @@ class CommercialView(QWidget):
         self.dialog.exec()
 
     def update_customer(self, **field_entries):
-        print(field_entries)
         try:
             customer_id = self.selected_id
             updated_customer = self.controller.update_customer(customer_id, **field_entries)
@@ -152,6 +171,9 @@ class CommercialView(QWidget):
 
 
     def filter_contract_window(self):
+        """
+            Ouvre une modale pour filtrer les contracts
+        """
         mk_create_dialog_window(self, "Get Filter Contract")
         customers = get_customers_list(self.controller.session)
         display_names = [f"{customer.last_name} {customer.first_name} - {customer.id}" for customer in customers]
@@ -314,7 +336,6 @@ class CommercialView(QWidget):
 
 
     def update_contract(self,**field_entries):
-        print(f"F E :{field_entries}")
         try :
             contract_id = self.selected_id
             print(f"contract id : {contract_id}")

@@ -1,6 +1,6 @@
 # Methods for create windows, dialog and widgets :
 
-from datetime import datetime, timedelta
+import datetime
 
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
@@ -170,3 +170,44 @@ def mk_create_slider_with_lineedit(self, label, min_value, max_value, initial_va
 
     # Retourner le slider et le QLineEdit pour une gestion future
     return slider, lineedit
+
+def mk_create_table(labels_list, items, attributes_list):
+    table = QTableWidget()
+    table.setColumnCount(len(labels_list))
+    table.setHorizontalHeaderLabels(labels_list)
+    table.setRowCount(len(items))
+        # Remplir le tableau avec les données des objets
+    for row_idx, item in enumerate(items):
+        for col_idx, attribute in enumerate(attributes_list):
+            # Utiliser getattr pour obtenir la valeur de l'attribut
+            value = getattr(item, attribute, "")
+            
+            # Si c'est un objet de type date, on le formate
+            if isinstance(value, (datetime.date, datetime.datetime)):
+                value = value.strftime('%Y-%m-%d')
+
+            # Si c'est un objet lié (comme commercial_contact), on gère différemment
+            elif isinstance(value, object) and hasattr(value, 'first_name') and hasattr(value, 'last_name'):
+                value = f"{value.first_name} {value.last_name}"
+
+            # Ajouter l'élément au tableau
+            table.setItem(row_idx, col_idx, QTableWidgetItem(str(value)))
+
+    table.resizeColumnsToContents()
+    return table
+
+def mk_create_table_window(self, title, header, table):
+    self.dialog = QDialog(self)
+    self.dialog.setWindowTitle(title)
+    layout = QVBoxLayout()
+    header = QLabel(header)
+    header.setStyleSheet("font-size: 16px; font-weight: bold;")
+    layout.addWidget(header)
+    layout.addWidget(table)
+    close_button = QPushButton("Close")
+    close_button.clicked.connect(self.dialog.accept)
+    layout.addWidget(close_button)
+    self.dialog.setLayout(layout)
+    self.dialog.resize(850,400)  # Dimensionner la fenêtre à 600x400 pixels
+    self.dialog.exec()
+
