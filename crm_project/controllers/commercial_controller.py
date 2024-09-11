@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from sqlalchemy.orm.attributes import flag_modified
 
 from crm_project.models import *
@@ -36,7 +37,7 @@ class CommercialController:
             self.session.commit()
             return customer
         except Exception as e:
-            self.session.rollback()  # Annuler en cas d'erreur
+            self.session.rollback()  
             raise ValueError(f"An error occurred while updating customer: {str(e)}")
     
     @require_permission('update_contract')
@@ -50,19 +51,15 @@ class CommercialController:
                     value = int(value)
                 elif key == 'status':
                     value = bool(value)
-                print(f"Updating {key} with value: {value}")  # Debugging
                 setattr(contract, key, value)
-                flag_modified(contract, key)
             self.session.commit()
             return contract
         except Exception as e:
-            self.session.rollback()  # Annuler en cas d'erreur
+            self.session.rollback()  
             raise ValueError(f"An error occurred while updating contract: {str(e)}")
 
-    
-
     @require_permission('get_contracts')
-    def contract_filter(self, filter_data):
+    def contract_filter(self, **filter_data):
         query = self.session.query(Contract)
 
         if 'status' in filter_data:
