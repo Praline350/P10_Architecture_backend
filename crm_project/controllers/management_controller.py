@@ -3,9 +3,10 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from crm_project.models import *
 from datetime import datetime
 from crm_project.project.permissions import *
+from crm_project.controllers.main_controller import MainController
 
 
-class ManagementController:
+class ManagementController(MainController):
     def __init__(self, session, authenticated_user, login_controller):
         self.session = session
         self.authenticated_user = authenticated_user
