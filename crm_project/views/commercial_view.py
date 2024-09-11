@@ -2,6 +2,7 @@
 
 from crm_project.helpers.get_data import *
 from crm_project.views import *
+from crm_project.views.widget_maker import *
 
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
@@ -371,31 +372,51 @@ class CommercialView(QWidget):
         else:
             QMessageBox.warning(self, "Error", "No contracts found.")
 
+
     def update_contract_window(self):
-        pass
-    #         dialog = QDialog(self)
-    #         dialog.setWindowTitle("Udpate Contract")
-    #         # Layout principal
-    #         form_layout = QFormLayout()
-    #         contracts = get_contracts_list(self.controller.session)
-    #         self.contract_combobox = QComboBox()
-    #         contract_data_dict = {}
-    #         for contract in contracts:
-    #             self.contract_combobox.addItem(f"{contract.id} - {contract.customer.last_name}")
-    #             contract_data_dict[contract.id] = contract
-    #         form_layout.addRow('Select Contract', self.contract_combobox)
+        """
+        Ouvre une fenêtre modale pour mettre à jour un contrat.
+        """
+        # Fenêtre modale pour mettre à jour un client
+        mk_create_dialog_window(self, 'Update a contract')
+        contracts = get_contract_commercial(self.controller.authenticated_user, self.controller.session)
+        display_names = [f"{contract.id} - {contract.customer.last_name}" for contract in contracts]
 
-    #         self.status_checkbox = QCheckBox("Contract Active")
-    #         form_layout.addRow("Status:", self.status_checkbox)
+        mk_create_combox_id_name(self, contracts, display_names, "Contract")
 
-    #         self.amount_due_entry = QLineEdit()
-    #         form_layout.addRow("Amount Due:", self.amount_due_entry)
+        mk_create_checkbox(self, "Filter by Status (Active=Signed)", False)
 
-    #         self.remaining_amount_entry = QLineEdit()
-    #         form_layout.addRow("Remaining Amount:", self.remaining_amount_entry)
+        fields_dict = {
+            'amount_due': 'Amount Due:',
+            'remaining_amount': 'Remaining Amount:',
+        }
+        mk_create_edit_lines(self, fields_dict)
+        self.field_entries['status'] = self.checkbox
 
-    #         def update_fields():
-    #             selected_contract = self.contract_combobox.currentData()
-    #             selected_contract_id = self
+        # Connecter l'événement de changement de sélection de la combobox à la fonction
+        self.combobox.currentIndexChanged.connect(lambda: mk_update_fields(self))
+
+        mk_update_fields(self)
+        print(f"field entries : {self.field_entries}")
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(lambda: self.update_contract(
+            field_entries = {
+                'contract_id': self.combobox.currentData(),
+                'amount_due': self.field_entries['amount_due'].text(),
+                'remaining_amount': self.field_entries['remaining_amount'].text(),
+                'status': self.field_entries['status'].isChecked(),
+            }
+        ))
+        buttons.rejected.connect(self.dialog.reject)
+        self.form_layout.addWidget(buttons)
+
+        # Appliquer le layout à la fenêtre modale
+        self.dialog.setLayout(self.form_layout)
+        self.dialog.exec()
+
+
+    def update_contract(self, **field_entries):
+        print(field_entries)
+
 
 
