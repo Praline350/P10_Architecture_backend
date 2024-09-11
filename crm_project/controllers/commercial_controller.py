@@ -27,13 +27,17 @@ class CommercialController:
     
     @require_permission('update_customer')
     def update_customer(self,  customer_id, **kwargs):
-        customer = self.session.query(Customer).filter_by(id=customer_id).first()
-        if not customer:
-            raise ValueError(f"Customer {customer_id} not found.")
-        for key, value in kwargs.items():
-            setattr(customer, key, value)
-        self.session.commit()
-        return customer
+        try:    
+            customer = self.session.query(Customer).filter_by(id=customer_id).first()
+            if not customer:
+                raise ValueError(f"Customer {customer_id} not found.")
+            for key, value in kwargs.items():
+                setattr(customer, key, value)
+            self.session.commit()
+            return customer
+        except Exception as e:
+            self.session.rollback()  # Annuler en cas d'erreur
+            raise ValueError(f"An error occurred while updating customer: {str(e)}")
     
     @require_permission('update_contract')
     def update_contract(self, contract_id, **kwargs):
