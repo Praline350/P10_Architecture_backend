@@ -396,16 +396,14 @@ class CommercialView(QWidget):
         # Connecter l'événement de changement de sélection de la combobox à la fonction
         self.combobox.currentIndexChanged.connect(lambda: mk_update_fields(self))
 
+        # Met a jour les champ en fonction du combobox et retourne le contract selectionné
         mk_update_fields(self)
-        print(f"field entries : {self.field_entries}")
+
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(lambda: self.update_contract(
-            field_entries = {
-                'contract_id': self.combobox.currentData(),
-                'amount_due': self.field_entries['amount_due'].text(),
-                'remaining_amount': self.field_entries['remaining_amount'].text(),
-                'status': self.field_entries['status'].isChecked(),
-            }
+                    amount_due=self.field_entries['amount_due'].text(),
+                    remaining_amount=self.field_entries['remaining_amount'].text(),
+                    status=self.field_entries['status'].isChecked() 
         ))
         buttons.rejected.connect(self.dialog.reject)
         self.form_layout.addWidget(buttons)
@@ -415,8 +413,20 @@ class CommercialView(QWidget):
         self.dialog.exec()
 
 
-    def update_contract(self, **field_entries):
-        print(field_entries)
+    def update_contract(self,**field_entries):
+        print(f"F E :{field_entries}")
+        try :
+            contract_id = self.selected_id
+            print(f"contract id : {contract_id}")
+            updated_contract = self.controller.update_contract(contract_id, **field_entries)
+            print(f"new contract : {updated_contract.to_dict()}")
+            QMessageBox.information(self, "Success", f"Contract {updated_contract.id} updated successfully.")
+            self.dialog.accept()  # Ferme la fenêtre après succès
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred: {e}")
+        
 
 
 

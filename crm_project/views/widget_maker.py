@@ -72,10 +72,10 @@ def mk_create_checkbox(self, title, checked):
 
     # Fonction pour mettre à jour les champs de texte avec les données de l'élément sélectionné
 def mk_update_fields(self):
-    selected_id = self.combobox.currentData()
-    selected_data = self.data_dict.get(selected_id)
+    self.selected_id = self.combobox.currentData()
+    selected_data = self.data_dict.get(self.selected_id)
     # Debug
-    print("Selected contract ID:", selected_id)
+    print("Selected contract ID:", self.selected_id)
     print("Selected contract:", selected_data)
     print("Field entries:", self.field_entries)
     # Préremplir les champs avec les informations du client
@@ -96,6 +96,6 @@ def mk_update_fields(self):
 
 def mk_create_dialog_button(self, method, **data):
     self.button = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-    self.button.accepted.connect(lambda: method(**data ))
+    self.button.accepted.connect(lambda: method(**data))
     self.button.rejected.connect(self.dialog.reject)
     self.form_layout.addWidget(self.button)

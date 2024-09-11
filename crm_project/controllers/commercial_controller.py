@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy.orm.attributes import flag_modified
 
 from crm_project.models import *
 from crm_project.project.permissions import *
@@ -41,7 +42,13 @@ class CommercialController:
             if not contract:
                 raise ValueError(f"Contract {contract_id} not found.")
             for key, value in kwargs.items():
+                if key in ['amount_due', 'remaining_amount']:
+                    value = int(value)
+                elif key == 'status':
+                    value = bool(value)
+                print(f"Updating {key} with value: {value}")  # Debugging
                 setattr(contract, key, value)
+                flag_modified(contract, key)
             self.session.commit()
             return contract
         except Exception as e:
