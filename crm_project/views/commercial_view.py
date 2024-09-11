@@ -66,54 +66,37 @@ class CommercialView(QWidget):
         Ouvre une fenêtre modale pour créer un customer.
         """
         # Fenêtre modale pour créer un contrat
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Create New Customer")
+        mk_create_dialog_window(self, 'Create a New Customer')
 
-        # Création du layout pour la fenêtre de création de contrat
-        form_layout = QFormLayout()
-
-        # Ajouter des champs à la fenêtre de création
-        first_name_entry = QLineEdit()
-        form_layout.addRow("Customer First_Name:", first_name_entry)
-
-        last_name_entry = QLineEdit()
-        form_layout.addRow("Customer Last_Name:", last_name_entry)
-
-        # Champs pour l'email du client
-        email_entry = QLineEdit()
-        form_layout.addRow("Customer Email:", email_entry)
-
-        # Champs pour le nom de la société
-        company_name_entry = QLineEdit()
-        form_layout.addRow("Company Name:", company_name_entry)
+        fields_dict = {
+            'first_name': 'Customer First Name:',
+            'last_name': ' Customer Last Name:',
+            'email': 'Customer Email:',
+            'company_name': 'Company Name:'
+        }
+        mk_create_edit_lines(self, fields_dict)
 
         # Boutons pour soumettre ou annuler
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(lambda: self.create_customer(dialog, first_name_entry.text(), last_name_entry.text(), email_entry.text(), company_name_entry.text()))
-        buttons.rejected.connect(dialog.reject)
-        form_layout.addWidget(buttons)
-
-        # Appliquer le layout à la fenêtre modale
-        dialog.setLayout(form_layout)
-        dialog.exec()
+        buttons.accepted.connect(lambda: self.create_customer(
+            first_name=self.field_entries['first_name'].text(),
+            last_name=self.field_entries['last_name'].text(),
+            email=self.field_entries['email'].text(),
+            company_name=self.field_entries['company_name'].text()
+        ))
+        buttons.rejected.connect(self.dialog.reject)
+        self.form_layout.addWidget(buttons)
+        self.dialog.setLayout(self.form_layout)
+        self.dialog.exec()
     
-    def create_customer(self, dialog, first_name, last_name, email, company_name):
+    def create_customer(self, **field_entries):
         """
         Appelle le contrôleur pour créer un nouveau client avec les données fournies.
         """
-        # Préparation des données du client
-        customer_data = {
-            'first_name': first_name,
-            'last_name': last_name,
-            'email': email,
-            'company_name': company_name,
-        }
-
-        # Appel au contrôleur pour créer le client
         try:
-            new_customer = self.controller.create_customer(**customer_data)
-            QMessageBox.information(self, "Success", "Customer created successfully.")
-            dialog.accept()  # Ferme la fenêtre après succès
+            new_customer = self.controller.create_customer(**field_entries)
+            QMessageBox.information(self, "Success", f"Customer {new_customer.last_name} created successfully.")
+            self.dialog.accept()  # Ferme la fenêtre après succès
         except PermissionError as e:
             QMessageBox.warning(self, "Permission Denied", str(e))
         except Exception as e:
@@ -123,79 +106,45 @@ class CommercialView(QWidget):
         """
         Ouvre une fenêtre modale pour mettre à jour un client.
         """
-        # Fenêtre modale pour mettre à jour un client
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Update Customer")
-        form_layout = QFormLayout()
-
+        mk_create_dialog_window(self, "Update a Customer")
         customers = get_customers_commercial(self.controller.authenticated_user, self.controller.session)
-        customer_combobox = QComboBox()
-        customer_data_dict = {}  # Dictionnaire pour stocker les données des clients avec leur ID
+        display_names = [f"{customer.id} - {customer.last_name}" for customer in customers]
 
-        for customer in customers:
-            customer_display = f"{customer['id']} - {customer['first_name']} {customer['last_name']}"
-            customer_combobox.addItem(customer_display, customer['id'])
-            customer_data_dict[customer['id']] = customer  
+        mk_create_combox_id_name(self, customers, display_names, "Contract")
 
-        form_layout.addRow("Customer:", customer_combobox)
-        first_name_entry = QLineEdit()
-        form_layout.addRow("Customer First Name:", first_name_entry)
+        fields_dict = {
+            'first_name': 'Customer First Name',
+            'last_name': 'Customer Last Name',
+            'email': 'Customer Email',
+            'company_name': 'Company Name',
+        }
+        mk_create_edit_lines(self, fields_dict)
 
-        last_name_entry = QLineEdit()
-        form_layout.addRow("Customer Last Name:", last_name_entry)
-
-        email_entry = QLineEdit()
-        form_layout.addRow("Customer Email:", email_entry)
-
-        company_name_entry = QLineEdit()
-        form_layout.addRow("Company Name:", company_name_entry)
-
-        # Fonction pour mettre à jour les champs de texte avec les données du client sélectionné
-        def update_fields():
-            selected_customer_id = customer_combobox.currentData()
-            selected_customer = customer_data_dict.get(selected_customer_id, {})
-
-            # Préremplir les champs avec les informations du client
-            first_name_entry.setText(selected_customer.get('first_name', ''))
-            last_name_entry.setText(selected_customer.get('last_name', ''))
-            email_entry.setText(selected_customer.get('email', ''))
-            company_name_entry.setText(selected_customer.get('company_name', ''))
-
-        # Connecter l'événement de changement de sélection de la combobox à la fonction
-        customer_combobox.currentIndexChanged.connect(update_fields)
+        self.combobox.currentIndexChanged.connect(lambda: mk_update_fields(self))
 
         # Remplir automatiquement les champs lorsque le client est sélectionné
-        update_fields()
+        mk_update_fields(self)
 
         # Boutons pour soumettre ou annuler
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(lambda: self.update_customer(
-            dialog,
-            customer_combobox.currentData(),
-            first_name_entry.text(),
-            last_name_entry.text(),
-            email_entry.text(),
-            company_name_entry.text()
+            first_name=self.field_entries['first_name'].text(),
+            last_name=self.field_entries['last_name'].text(),
+            email=self.field_entries['email'].text(),
+            company_name=self.field_entries['company_name'].text()
         ))
-        buttons.rejected.connect(dialog.reject)
-        form_layout.addWidget(buttons)
+        buttons.rejected.connect(self.dialog.reject)
+        self.form_layout.addWidget(buttons)
+        self.dialog.setLayout(self.form_layout)
+        self.dialog.exec()
 
-        # Appliquer le layout à la fenêtre modale
-        dialog.setLayout(form_layout)
-        dialog.exec()
-
-    def update_customer(self, dialog, customer_id, first_name, last_name, email, company_name):
-        customer_data = {
-            'first_name': first_name,
-            'last_name': last_name,
-            'email': email,
-            'company_name': company_name,
-        }
-            # Appel au contrôleur pour mettre à jour le client
+    def update_customer(self, **field_entries):
+        print(field_entries)
         try:
-            updated_customer = self.controller.update_customer(customer_id, **customer_data)
+            customer_id = self.selected_id
+            updated_customer = self.controller.update_customer(customer_id, **field_entries)
             QMessageBox.information(self, "Success", "Customer updated successfully.")
-            dialog.accept()  # Ferme la fenêtre après succès
+            self.dialog.accept()  # Ferme la fenêtre après succès
         except ValueError as e:
             QMessageBox.warning(self, "Error", str(e))
         except Exception as e:
@@ -203,96 +152,39 @@ class CommercialView(QWidget):
 
 
     def filter_contract_window(self):
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Get Contract List by Filter")
+        mk_create_dialog_window(self, "Get Filter Contract")
         customers = get_customers_list(self.controller.session)
+        display_names = [f"{customer.last_name} {customer.first_name} - {customer.id}" for customer in customers]
+        mk_create_combox_id_name(self, customers, display_names, 'Customer')
+        self.combobox.addItem("All Customers", None)
 
-        form_layout = QFormLayout()
+        mk_create_checkbox(self, "Filter by Status (Active=Signed)", False)
 
-        self.customer_combobox = QComboBox()
-        self.customer_combobox.addItem("All Customers", None)
-        for customer in customers:
-            customer_name = f"{customer['first_name']} {customer['last_name']}"
-            self.customer_combobox.addItem(customer_name, customer['id'])
-        form_layout.addRow("Select Customer:", self.customer_combobox)
+        field_dict = {
+            'contract_status': ['All', 'Paid', 'Not Paid']
+        }
+        mk_create_radio_buttons(self, field_dict, "All")
 
-        self.status_checkbox = QCheckBox()
-        form_layout.addRow("Filter by Status (Active=Signed)", self.status_checkbox)
+        self.amount_due_min_slider, self.amount_due_min_lineedit = mk_create_slider_with_lineedit(self,
+        "Min Amount Due:", 0, 10000, 0)
 
-        # Créer un groupe de boutons radio pour le filtre sur le paiement
-        self.paid_all_radio = QRadioButton("All")
-        self.paid_radio = QRadioButton("Paid")
-        self.not_paid_radio = QRadioButton("Not Paid")
-        self.paid_all_radio.setChecked(True)
+        self.amount_due_max_slider, self.amount_due_max_lineedit = mk_create_slider_with_lineedit(self,
+        "Max Amount Due:", 0, 10000, 10000)
 
-        paid_layout = QHBoxLayout()
-        paid_layout.addWidget(self.paid_all_radio)
-        paid_layout.addWidget(self.paid_radio)
-        paid_layout.addWidget(self.not_paid_radio)
-        form_layout.addRow("Filter by Payment Status:", paid_layout)
-            
-        # Min Amount Due Slider and Label
-        self.amount_due_min_slider = QSlider(Qt.Horizontal)
-        self.amount_due_min_slider.setRange(0, 10000)
-        self.amount_due_min_slider.setValue(0)
-        self.amount_due_min_lineedit = QLineEdit("0")
-        self.amount_due_min_lineedit.setFixedWidth(60)
-
-        amount_due_min_layout = QHBoxLayout()
-        amount_due_min_layout.addWidget(self.amount_due_min_slider)
-        amount_due_min_layout.addWidget(self.amount_due_min_lineedit)
-        form_layout.addRow("Min Amount Due:", amount_due_min_layout)
-
-        # Max Amount Due Slider and Label
-        self.amount_due_max_slider = QSlider(Qt.Horizontal)
-        self.amount_due_max_slider.setRange(0, 10000)
-        self.amount_due_max_slider.setValue(10000)
-        self.amount_due_max_lineedit = QLineEdit("10000")
-        self.amount_due_max_lineedit.setFixedWidth(60)
-
-        amount_due_max_layout = QHBoxLayout()
-        amount_due_max_layout.addWidget(self.amount_due_max_slider)
-        amount_due_max_layout.addWidget(self.amount_due_max_lineedit)
-        form_layout.addRow("Max Amount Due:", amount_due_max_layout)
-
-        # Creation contract Date filter
-        self.creation_date_after = QDateEdit()
-        self.creation_date_after.setCalendarPopup(True)
-        self.creation_date_after.setDate(QDate.currentDate().addDays(-5))
-        form_layout.addRow("Contract Create After:", self.creation_date_after)
-
-        self.creation_date_before = QDateEdit()
-        self.creation_date_before.setCalendarPopup(True)
-        self.creation_date_before.setDate(QDate.currentDate().addDays(5))
-        form_layout.addRow("Contract Create Before:", self.creation_date_before)
-        
-        def update_slider_from_lineedit(slider, lineedit):
-            # Fonction de mise à jour dynamique entre les sliders et les LineEdits
-            try:
-                value = int(lineedit.text())
-                slider.setValue(value)
-            except ValueError:
-                lineedit.setText(str(slider.value()))  # Remet la valeur actuelle si la saisie est incorrecte
-
-        def update_lineedit_from_slider(slider, lineedit):
-            lineedit.setText(str(slider.value()))
-
-        # Connecte les sliders et les LineEdits 
-        self.amount_due_min_slider.valueChanged.connect(lambda value: update_lineedit_from_slider(self.amount_due_min_slider, self.amount_due_min_lineedit))
-        self.amount_due_min_lineedit.textChanged.connect(lambda: update_slider_from_lineedit(self.amount_due_min_slider, self.amount_due_min_lineedit))
-
-        self.amount_due_max_slider.valueChanged.connect(lambda value: update_lineedit_from_slider(self.amount_due_max_slider, self.amount_due_max_lineedit))
-        self.amount_due_max_lineedit.textChanged.connect(lambda: update_slider_from_lineedit(self.amount_due_max_slider, self.amount_due_max_lineedit))
-
+        self.creation_date_after = mk_create_dateedit(self,
+        "Contract Create After:", QDate.currentDate().addDays(-5))
+    
+        self.creation_date_before = mk_create_dateedit(self,
+        "Contract Create Before:", QDate.currentDate().addDays(5))
 
         # Boutons pour appliquer ou annuler
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.apply_filter)
-        buttons.rejected.connect(dialog.reject)
-        form_layout.addWidget(buttons)
+        buttons.rejected.connect(self.dialog.reject)
+        self.form_layout.addWidget(buttons)
 
-        dialog.setLayout(form_layout)
-        dialog.exec()
+        self.dialog.setLayout(self.form_layout)
+        self.dialog.exec()
     
     def apply_filter(self):
         """
@@ -300,23 +192,31 @@ class CommercialView(QWidget):
         """
         filter_data = {}
 
-        # Récupérer les checkbox
-        if self.status_checkbox.isChecked():
+        if self.checkbox.isChecked():
             filter_data['status'] = True
-        if self.paid_radio.isChecked():
+        selected_payment_status = get_selected_radio_value(self, 'contract_status')
+        if selected_payment_status == "Paid":
             filter_data['paid'] = True
-        elif self.not_paid_radio.isChecked():
+        elif selected_payment_status == "Not Paid":
             filter_data['paid'] = False
         else:
             filter_data['paid'] = None
         
-        filter_data['customer_id'] = self.customer_combobox.currentData()
+        # Récupérer l'ID du client sélectionné dans la combobox
+        filter_data['customer_id'] = self.combobox.currentData()
+
+        # Récupérer les valeurs des sliders pour les montants
         filter_data['amount_due_min'] = self.amount_due_min_slider.value()
         filter_data['amount_due_max'] = self.amount_due_max_slider.value()
+
+        # Récupérer les dates de création avant et après
         filter_data['creation_date_before'] = self.creation_date_before.date().toPython()
         filter_data['creation_date_after'] = self.creation_date_after.date().toPython()
 
+        # Appeler la méthode de filtrage des contrats avec les données collectées
         contracts = self.controller.contract_filter(filter_data)
+        
+        # Afficher les contrats filtrés
         self.show_filtered_contracts(contracts)
 
     def show_filtered_contracts(self, contracts):
@@ -401,9 +301,9 @@ class CommercialView(QWidget):
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(lambda: self.update_contract(
-                    amount_due=self.field_entries['amount_due'].text(),
-                    remaining_amount=self.field_entries['remaining_amount'].text(),
-                    status=self.field_entries['status'].isChecked() 
+            amount_due=self.field_entries['amount_due'].text(),
+            remaining_amount=self.field_entries['remaining_amount'].text(),
+            status=self.field_entries['status'].isChecked() 
         ))
         buttons.rejected.connect(self.dialog.reject)
         self.form_layout.addWidget(buttons)

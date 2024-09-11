@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
                                QDialog, QFormLayout, QDialogButtonBox, QGridLayout,
                                QSpacerItem, QSizePolicy, QFormLayout, QCheckBox,
                                QSlider, QDateEdit, QTableWidget, QTableWidgetItem,
-                               QRadioButton
+                               QRadioButton, QButtonGroup, QGroupBox
                                )
 
 
@@ -43,20 +43,24 @@ def mk_create_edit_lines(self, fields_dict):
         entry = QLineEdit()
         self.form_layout.addRow(field_label, entry)
         self.field_entries[field_name] = entry
+    return self.field_entries
 
 
-def mk_create_date(self, date_value):
+def mk_create_dateedit(self, label, initial_date):
     """
     Crée un QDateEdit pour un champ de date.
     :param date_value: Valeur de date initiale (datetime).
     :return: QDateEdit widget.
     """
-    self.date_edit = QDateEdit()
-    self.date_edit.setCalendarPopup(True)  # Affiche le calendrier popup
-    if isinstance(date_value, datetime.datetime):
-        self.date_edit.setDate(date_value.date())  # Définit la date si valide
-    else:
-        self.date_edit.setDate(QDate.currentDate())  # Définit la date actuelle par défaut
+    date_edit = QDateEdit()
+    date_edit.setCalendarPopup(True)  # Permet d'afficher un calendrier
+    date_edit.setDate(initial_date)
+
+    # Ajouter au formulaire avec le label
+    self.form_layout.addRow(label, date_edit)
+
+    # Retourner le QDateEdit pour une utilisation future
+    return date_edit # Définit la date actuelle par défaut
 
 
 def mk_create_checkbox(self, title, checked):
@@ -68,10 +72,9 @@ def mk_create_checkbox(self, title, checked):
     self.form_layout.addRow(title, self.checkbox)
 
 
-
-
-    # Fonction pour mettre à jour les champs de texte avec les données de l'élément sélectionné
 def mk_update_fields(self):
+    # Fonction pour mettre à jour les champs de texte avec les données de l'élément sélectionné
+
     self.selected_id = self.combobox.currentData()
     selected_data = self.data_dict.get(self.selected_id)
     # Debug
@@ -99,3 +102,71 @@ def mk_create_dialog_button(self, method, **data):
     self.button.accepted.connect(lambda: method(**data))
     self.button.rejected.connect(self.dialog.reject)
     self.form_layout.addWidget(self.button)
+
+
+def mk_create_radio_buttons(self, field_dict, checked_key=None):
+    self.radio_button_entries = {}
+    for field_name, options in field_dict.items():
+        radio_group = QButtonGroup(self)
+        radio_layout = QVBoxLayout()
+        group_box = QGroupBox(field_name.capitalize())
+        group_box.setLayout(radio_layout)
+
+        for option in options:
+            radio_button = QRadioButton(option)
+            radio_group.addButton(radio_button)
+
+            if option == checked_key:
+                radio_button.setChecked(True)
+            radio_layout.addWidget(radio_button)
+        self.form_layout.addRow(group_box)
+        self.radio_button_entries[field_name] = radio_group
+        print(self.radio_button_entries)
+
+def get_selected_radio_value(self, field_name):
+    """
+    Récupère la valeur sélectionnée dans un groupe de boutons radio.
+    :param field_name: Nom du champ pour accéder au groupe de boutons radio.
+    :return: Le texte du bouton sélectionné.
+    """
+    radio_group = self.radio_button_entries[field_name]
+    checked_button = radio_group.checkedButton()  # Récupérer le bouton sélectionné
+    if checked_button:
+        return checked_button.text()  # Retourne le texte du bouton sélectionné
+    return None
+        
+
+def mk_create_slider_with_lineedit(self, label, min_value, max_value, initial_value):
+    # Créer le slider
+    slider = QSlider(Qt.Horizontal)
+    slider.setRange(min_value, max_value)
+    slider.setValue(initial_value)
+
+    # Créer le QLineEdit associé
+    lineedit = QLineEdit(str(initial_value))
+    lineedit.setFixedWidth(60)
+
+    # Layout pour le slider et le QLineEdit
+    slider_layout = QHBoxLayout()
+    slider_layout.addWidget(slider)
+    slider_layout.addWidget(lineedit)
+
+    # Ajouter le label et le layout au formulaire
+    self.form_layout.addRow(label, slider_layout)
+
+    # Connecter le slider et le QLineEdit
+    def update_slider_from_lineedit():
+        try:
+            value = int(lineedit.text())
+            slider.setValue(value)
+        except ValueError:
+            lineedit.setText(str(slider.value()))  # Remettre la valeur actuelle si la saisie est incorrecte
+
+    def update_lineedit_from_slider(value):
+        lineedit.setText(str(value))
+
+    slider.valueChanged.connect(update_lineedit_from_slider)
+    lineedit.textChanged.connect(update_slider_from_lineedit)
+
+    # Retourner le slider et le QLineEdit pour une gestion future
+    return slider, lineedit
