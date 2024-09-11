@@ -84,6 +84,15 @@ def get_contracts_list(session):
         print(f"Error during get contracts: {e}")
         return None
     
+def get_contract_by_customer(customer_id, session):
+    try:
+        contracts = session.query(Contract).filter_by(customer_id=customer_id)
+        return contracts
+    except SQLAlchemyError as e:
+        session.rollback()
+        print(f"Error during get contracts: {e}")
+        return None
+    
 
 def get_users(session):
     try:
@@ -98,13 +107,22 @@ def get_users(session):
     
 def get_commercials(session):
     try:
-        commercials = session.query(User).filter_by(role=RoleName.COMMERCIAL)
+        commercials = session.query(User).filter_by(role=RoleName.COMMERCIAL).all()
         return commercials
     except SQLAlchemyError as e:
         session.rollback()
         print(f"Error during get users: {e}")
         return None
     
+def get_support_user(session):
+    try:
+        supports = session.query(User).filter(User.role.has(name=RoleName.SUPPORT)).all()
+
+        return supports
+    except SQLAlchemyError as e:
+        session.rollback()
+        print(f"Error during get users: {e}")
+        return None  
 
 def get_status_contract(contract_id, session):
     contract = session.query(Contract).filter_by(id=contract_id).first()
@@ -114,3 +132,6 @@ def get_status_contract(contract_id, session):
         return True    
 
     
+def get_display_customer_name(customers):
+    return [f"{customer.id} - {customer.last_name} {customer.first_name}" for customer in customers]
+
