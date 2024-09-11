@@ -1,6 +1,7 @@
-import tkinter as tk
-from tkinter import messagebox, ttk
+
+from crm_project.views.widget_maker import * 
 from crm_project.views import *
+from crm_project.views.main_view import *
 from crm_project.helpers.get_data import *
 from PySide6.QtCore import Qt 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout ,QComboBox, QLineEdit, QMessageBox, QDialog, QFormLayout, QDialogButtonBox, QGridLayout,QSpacerItem, QSizePolicy, QFormLayout
@@ -10,7 +11,6 @@ class ManagementView(QWidget):
         super().__init__()
         self.authenticated_user = controller.authenticated_user
         self.controller = controller
-
         self.setup_widgets()
 
     def setup_widgets(self):
@@ -27,6 +27,9 @@ class ManagementView(QWidget):
         self.create_contract_button = QPushButton("Create Contract")
         self.create_contract_button.clicked.connect(self.create_contract_window)
 
+        self.update_contract_button = QPushButton('Update a Contract')
+        self.update_contract_button.clicked.connect(self.open_update_contract_dialog)
+
         self.create_user_button = QPushButton("Creare New Employee")
         self.create_user_button.clicked.connect(self.create_user_window)
 
@@ -36,73 +39,93 @@ class ManagementView(QWidget):
         self.delete_user_button = QPushButton("Delete an Employee")
         self.delete_user_button.clicked.connect(self.delete_user_window)
 
+
+
         widgets = [
             self.create_user_button, self.create_contract_button,
-            self.update_user_button, self.delete_user_button
+            self.update_user_button, self.delete_user_button,
+            self.update_contract_button
         ]
         columns = 2
 
-        for index, widget in enumerate(widgets):
-            row = index // columns
-            column = index % columns
-            grid.addWidget(widget, row, column)
-            widget.setObjectName('management_buttons')
-        layout.addLayout(grid)
-        layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
-        self.setLayout(layout)
+        mk_setup_widgets(self, layout, grid, columns, widgets)
+
+    
+    def open_update_contract_dialog(self):
+        dialog = mk_create_dialog_window(self, 'Update a contract')
+        update_contract_window(self, dialog)
 
 
     def create_contract_window(self):
         """
         Ouvre une fenêtre modale pour créer un contrat.
         """
-        # Fenêtre modale pour créer un contrat
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Create Contract")
-
-        # Création du layout pour la fenêtre de création de contrat
-        form_layout = QFormLayout()
-
+        dialog = mk_create_dialog_window(self, "Create a New Contract")
+        self.form_layout = QFormLayout(self)
         # Liste déroulante des clients
-        customers_info = get_customers_complet_name(self.controller.session)
-        customer_combobox = QComboBox()
-        if customers_info:
-            for customer in customers_info:
-                customer_combobox.addItem(customer['name'], customer['id']) 
-        form_layout.addRow("Select Customer:", customer_combobox)
+        customers = get_customers_list(self.controller.session)
+        display_names = get_display_customer_name(customers)
+        mk_create_combox_id_name(self, customers, display_names, "Customer")
 
-        # Champs de saisie pour les montants
-        amount_due_entry = QLineEdit()
-        form_layout.addRow("Amount due:", amount_due_entry)
+        self.customer_info_label = QLabel()
+        self.form_layout.addRow(self.customer_info_label) 
+        self.customer_info_label.setObjectName('label_customer_info')
 
-        remaining_amount_entry = QLineEdit()
-        form_layout.addRow("Remaining amount:", remaining_amount_entry)
+        self.combobox.currentIndexChanged.connect(self.on_customer_selection_changed)
+        selected_customer_id = self.combobox.currentData()
+        customer = self.data_dict.get(selected_customer_id)
+        data = {
+            'Email': customer.email,
+            'Company': customer.company_name,
+            'Commercial Contact': customer.commercial_contact.last_name,
+        }
+        mk_display_current_item(self.customer_info_label, data)
+
+        fields_dict = {
+            'amount_due': 'Amount due:',
+            'remaining_amount': 'Remaining amount'
+        }
+        mk_create_edit_lines(self, fields_dict)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(lambda: self.create_contract(dialog, customer_combobox.currentData(), amount_due_entry.text(), remaining_amount_entry.text(),))
+        buttons.accepted.connect(lambda: self.create_contract(dialog, 
+            
+            amount_due=self.field_entries['amount_due'].text(),
+            remaining_amount=self.field_entries['remaining_amount'].text()
+            ))
         buttons.rejected.connect(dialog.reject)
-        form_layout.addWidget(buttons)
+        self.form_layout.addWidget(buttons)
 
         # Appliquer le layout à la fenêtre modale
-        dialog.setLayout(form_layout)
+        dialog.setLayout(self.form_layout)
         dialog.exec()
+    
+    def on_customer_selection_changed(self, index):
+        # Récupérer l'ID du client sélectionné à partir de la combobox
+        selected_customer_id = self.combobox.itemData(index)
+        customer = self.data_dict.get(selected_customer_id)
+        data = {
+            'Email': customer.email,
+            'Company': customer.company_name,
+            'Commercial Contact': customer.commercial_contact.last_name,
+        }
+        if customer:
+            mk_display_current_item(self.customer_info_label, data)
 
     
-    def create_contract(self, dialog, customer, amount_due, remaining_amount):
+    def create_contract(self, dialog, **field_entries):
         """
         Crée un contrat avec les données fournies.
         """
-        contract_data = {
-            'amount_due': int(amount_due),
-            'remaining_amount': int(remaining_amount)
-        }
         try:
-            # Logique pour créer le contrat via le contrôleur
-            self.controller.create_contract(customer, **contract_data)
+            customer = customer=self.combobox.currentData()
+            self.controller.create_contract(customer, **field_entries)
             QMessageBox.information(self, "Success", "Contract created successfully.")
             dialog.accept()  # Ferme la fenêtre après succès
         except PermissionError as e:
             QMessageBox.warning(self, "Permission Denied", str(e))
+
+    
 
 
     def create_user_window(self):

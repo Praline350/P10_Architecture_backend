@@ -5,4 +5,5 @@ from crm_project.views.login_view import *
 from crm_project.views.main_window import *
 
 
-__all__ = ['CommercialView', 'ManagementView', 'SupportView', 'LoginWidget', 'MainWindow' ]
+
+__all__ = ['CommercialView', 'ManagementView', 'SupportView', 'LoginWidget', 'MainWindow']

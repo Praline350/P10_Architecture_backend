@@ -80,10 +80,13 @@ class MainWindow(QMainWindow):
     def view_events(self):
         events = get_events_list(self.controller.session)
         if events:
+            for event in events:
+                if event.contract and event.contract.customer:
+                    event.customer_last_name = event.contract.customer.last_name
             labels_list =  ["Event ID","contract ID", "Name", "Support Contact",
-                            "Customer", "Start Date","End Date", "Location",
+                            "Customer Name", "Start Date","End Date", "Location",
                             "Attendees", "Comment"]
-            attributes_list = ["id", "contract_id", "name","support_contact", "customer",
+            attributes_list = ["id", "contract_id", "name","support_contact", "customer_last_name",
                                "start_date", "end_date", "location", "attendees", "comment"]
             table = mk_create_table(labels_list, events, attributes_list)
             mk_create_table_window(self, "Events Table", "Event Informations", table)

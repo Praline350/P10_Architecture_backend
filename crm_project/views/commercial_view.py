@@ -20,14 +20,16 @@ Entrées :
 from crm_project.helpers.get_data import *
 from crm_project.views import *
 from crm_project.views.widget_maker import *
+from crm_project.views.main_view import *
 
+from datetime import datetime, timedelta
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
                                QHBoxLayout ,QComboBox, QLineEdit, QMessageBox,
                                QDialog, QFormLayout, QDialogButtonBox, QGridLayout,
                                QSpacerItem, QSizePolicy, QFormLayout, QCheckBox,
                                QSlider, QDateEdit, QTableWidget, QTableWidgetItem,
-                               QRadioButton
+                               QRadioButton, QTextEdit
                                )
 
 
@@ -60,33 +62,33 @@ class CommercialView(QWidget):
         self.get_filter_contract_button = QPushButton("Get Filter Contracts")
         self.get_filter_contract_button.clicked.connect(self.filter_contract_window)
         self.update_contract_button = QPushButton("Update a Contract")
-        self.update_contract_button.clicked.connect(self.update_contract_window)
+        self.update_contract_button.clicked.connect(self.open_update_contract_dialog)
+        self.create_event_button = QPushButton("Create a New Event")
+        self.create_event_button.clicked.connect(self.create_event_window)
 
         widgets = [
             self.create_customer_button,
             self.update_customer_button,
             self.get_filter_contract_button,
-            self.update_contract_button
+            self.update_contract_button,
+            self.create_event_button
         ]
 
         columns = 2
 
         # Créer dynamiquement les cellule de la grid 
-        for index, widget in enumerate(widgets):
-            row = index // columns
-            column = index % columns
-            grid.addWidget(widget, row, column)
-            # Encapsule dans un nom pour le qss
-            widget.setObjectName('management_buttons')
-        layout.addLayout(grid)
-        layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
-        self.setLayout(layout)
+        mk_setup_widgets(self, layout, grid,  columns, widgets)
+
+    def open_update_contract_dialog(self):
+        dialog = mk_create_dialog_window(self, 'Update a contract')
+        update_contract_window(self, dialog)
         
     def create_customer_window(self):
         """
         Ouvre une fenêtre modale pour créer un customer.
         """
-        mk_create_dialog_window(self, 'Create a New Customer')
+        dialog = mk_create_dialog_window(self, 'Create a New Customer')
+        self.form_layout = QFormLayout(self)
 
         fields_dict = {
             'first_name': 'Customer First Name:',
@@ -97,25 +99,25 @@ class CommercialView(QWidget):
         mk_create_edit_lines(self, fields_dict)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(lambda: self.create_customer(
+        buttons.accepted.connect(lambda: self.create_customer(dialog, 
             first_name=self.field_entries['first_name'].text(),
             last_name=self.field_entries['last_name'].text(),
             email=self.field_entries['email'].text(),
             company_name=self.field_entries['company_name'].text()
         ))
-        buttons.rejected.connect(self.dialog.reject)
+        buttons.rejected.connect(dialog.reject)
         self.form_layout.addWidget(buttons)
-        self.dialog.setLayout(self.form_layout)
-        self.dialog.exec()
+        dialog.setLayout(self.form_layout)
+        dialog.exec()
     
-    def create_customer(self, **field_entries):
+    def create_customer(self, dialog,  **field_entries):
         """
         Appelle le contrôleur pour créer un nouveau client avec les données fournies.
         """
         try:
             new_customer = self.controller.create_customer(**field_entries)
             QMessageBox.information(self, "Success", f"Customer {new_customer.last_name} created successfully.")
-            self.dialog.accept()  # Ferme la fenêtre après succès
+            dialog.accept()  # Ferme la fenêtre après succès
         except PermissionError as e:
             QMessageBox.warning(self, "Permission Denied", str(e))
         except Exception as e:
@@ -126,9 +128,10 @@ class CommercialView(QWidget):
         Ouvre une fenêtre modale pour mettre à jour un client.
         """
 
-        mk_create_dialog_window(self, "Update a Customer")
+        dialog = mk_create_dialog_window(self, "Update a Customer")
+        self.form_layout = QFormLayout(self)
         customers = get_customers_commercial(self.controller.authenticated_user, self.controller.session)
-        display_names = [f"{customer.id} - {customer.last_name}" for customer in customers]
+        display_names = get_display_customer_name(customers)
 
         mk_create_combox_id_name(self, customers, display_names, "Contract")
 
@@ -147,23 +150,23 @@ class CommercialView(QWidget):
 
         # Boutons pour soumettre ou annuler
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(lambda: self.update_customer(
+        buttons.accepted.connect(lambda: self.update_customer(dialog, 
             first_name=self.field_entries['first_name'].text(),
             last_name=self.field_entries['last_name'].text(),
             email=self.field_entries['email'].text(),
             company_name=self.field_entries['company_name'].text()
         ))
-        buttons.rejected.connect(self.dialog.reject)
+        buttons.rejected.connect(dialog.reject)
         self.form_layout.addWidget(buttons)
-        self.dialog.setLayout(self.form_layout)
-        self.dialog.exec()
+        dialog.setLayout(self.form_layout)
+        dialog.exec()
 
-    def update_customer(self, **field_entries):
+    def update_customer(self, dialog, **updated_data):
         try:
             customer_id = self.selected_id
-            updated_customer = self.controller.update_customer(customer_id, **field_entries)
+            updated_customer = self.controller.update_customer(customer_id, **updated_data)
             QMessageBox.information(self, "Success", "Customer updated successfully.")
-            self.dialog.accept()  # Ferme la fenêtre après succès
+            dialog.accept()  # Ferme la fenêtre après succès
         except ValueError as e:
             QMessageBox.warning(self, "Error", str(e))
         except Exception as e:
@@ -174,7 +177,9 @@ class CommercialView(QWidget):
         """
             Ouvre une modale pour filtrer les contracts
         """
-        mk_create_dialog_window(self, "Get Filter Contract")
+        dialog = mk_create_dialog_window(self, "Get Filter Contract")
+        self.form_layout = QFormLayout(self)
+
         customers = get_customers_list(self.controller.session)
         display_names = [f"{customer.last_name} {customer.first_name} - {customer.id}" for customer in customers]
         mk_create_combox_id_name(self, customers, display_names, 'Customer')
@@ -202,11 +207,11 @@ class CommercialView(QWidget):
         # Boutons pour appliquer ou annuler
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.apply_filter)
-        buttons.rejected.connect(self.dialog.reject)
+        buttons.rejected.connect(dialog.reject)
         self.form_layout.addWidget(buttons)
 
-        self.dialog.setLayout(self.form_layout)
-        self.dialog.exec()
+        dialog.setLayout(self.form_layout)
+        dialog.exec()
     
     def apply_filter(self):
         """
@@ -294,60 +299,75 @@ class CommercialView(QWidget):
         else:
             QMessageBox.warning(self, "Error", "No contracts found.")
 
+    def create_event_window(self):
+        dialog = mk_create_dialog_window(self, 'Create a New Event')
+        self.form_layout = QFormLayout(self)
 
-    def update_contract_window(self):
-        """
-        Ouvre une fenêtre modale pour mettre à jour un contrat.
-        """
-        # Fenêtre modale pour mettre à jour un client
-        mk_create_dialog_window(self, 'Update a contract')
-        contracts = get_contract_commercial(self.controller.authenticated_user, self.controller.session)
-        display_names = [f"{contract.id} - {contract.customer.last_name}" for contract in contracts]
+        supports = get_support_user(self.controller.session)
+        customers = get_customers_commercial(self.controller.authenticated_user, self.controller.session)
+        display_name = get_display_customer_name(customers)
 
-        mk_create_combox_id_name(self, contracts, display_names, "Contract")
+        mk_create_combox_id_name(self, customers, display_name, 'Customer')
 
-        mk_create_checkbox(self, "Filter by Status (Active=Signed)", False)
+        self.contract_combobox = QComboBox()
+        self.form_layout.addRow('Select Contract : ', self.contract_combobox)
+        self.combobox.currentIndexChanged.connect(self.update_contracts_combobox)
+        self.update_contracts_combobox()
+        self.support_combobox = QComboBox()
+        for support in supports:
+            display_name = f"{support.last_name} {support.first_name}"
+            self.support_combobox.addItem(display_name, support.id)
+        self.form_layout.addRow('Select Support Contact :', self.support_combobox)
 
         fields_dict = {
-            'amount_due': 'Amount Due:',
-            'remaining_amount': 'Remaining Amount:',
+            'name':' Name of this Event',
+            'location': 'Location',
+            'attendees':'Attendees',
         }
-        mk_create_edit_lines(self, fields_dict)
-        self.field_entries['status'] = self.checkbox
-
-        # Connecter l'événement de changement de sélection de la combobox à la fonction
-        self.combobox.currentIndexChanged.connect(lambda: mk_update_fields(self))
-
-        # Met a jour les champ en fonction du combobox et retourne le contract selectionné
-        mk_update_fields(self)
-
+        self.field_entries = mk_create_edit_lines(self, fields_dict)
+        self.comment_entry = QTextEdit()
+        self.comment_entry.setFixedHeight(80)
+        self.form_layout.addRow('Comment', self.comment_entry)
+        self.start_date = mk_create_dateedit(self, 'Start Date', QDate.currentDate().addDays(0))
+        self.end_date = mk_create_dateedit(self, 'End Date', QDate.currentDate().addDays(0))
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(lambda: self.update_contract(
-            amount_due=self.field_entries['amount_due'].text(),
-            remaining_amount=self.field_entries['remaining_amount'].text(),
-            status=self.field_entries['status'].isChecked() 
+        buttons.accepted.connect(lambda: self.create_event(dialog, 
+            name=self.field_entries['name'].text(),
+            location=self.field_entries['location'].text(),
+            attendees=self.field_entries['attendees'].text(),
+            comment=self.comment_entry.toPlainText(),
+            start_date=self.start_date.date().toPython(),
+            end_date=self.end_date.date().toPython(),
+            support_contact_id=self.support_combobox.currentData(),
+            contract_id=self.contract_combobox.currentData()
         ))
-        buttons.rejected.connect(self.dialog.reject)
+        buttons.rejected.connect(dialog.reject)
         self.form_layout.addWidget(buttons)
+        dialog.setLayout(self.form_layout)
+        dialog.exec()
 
-        # Appliquer le layout à la fenêtre modale
-        self.dialog.setLayout(self.form_layout)
-        self.dialog.exec()
-
-
-    def update_contract(self,**field_entries):
-        try :
-            contract_id = self.selected_id
-            print(f"contract id : {contract_id}")
-            updated_contract = self.controller.update_contract(contract_id, **field_entries)
-            print(f"new contract : {updated_contract.to_dict()}")
-            QMessageBox.information(self, "Success", f"Contract {updated_contract.id} updated successfully.")
-            self.dialog.accept()  # Ferme la fenêtre après succès
+    def create_event(self, dialog, **event_data):
+        print(event_data)
+        try:
+            new_event = self.controller.create_event(**event_data)
+            QMessageBox.information(self, "Success", f"Event : {new_event.name} create successfully.")
+            dialog.accept()  # Ferme la fenêtre après succès
         except ValueError as e:
             QMessageBox.warning(self, "Error", str(e))
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
-        
+            print(f'"Error", "An error occurred: {e}"')
 
-
-
+    def update_contracts_combobox(self):
+        """
+        Met à jour la liste des contrats en fonction du client sélectionné.
+        """
+        self.selected_customer_id = self.combobox.currentData()
+        self.selected_customer = self.data_dict.get(self.selected_customer_id)
+        if self.selected_customer:
+            self.contract_combobox.clear()
+            # Récupérer et ajouter les contrats du client sélectionné dans le second ComboBox
+            for contract in self.selected_customer.contracts:
+                self.contract_combobox.addItem(f"Contract {contract.id}", contract.id)
+        else:
+          self.contract_combobox.clear()
