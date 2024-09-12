@@ -5,8 +5,9 @@ from crm_project.models import *
 from crm_project.views import *
 from crm_project.views.admin_view import AdminView
 from crm_project.controllers import *
+from crm_project.controllers.main_controller import MainController
 
-class AuthenticationController:
+class AuthenticationController(MainController):
     def __init__(self, session ,main_window):
         self.session = session
         self.authenticated_user = None
