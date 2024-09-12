@@ -38,6 +38,7 @@ class MainWindow(QMainWindow):
         menu_bar = self.menuBar()
         file_menu = menu_bar.addMenu("&File")
         report_menu = menu_bar.addMenu('&Report')
+        profil_menu = menu_bar.addMenu('&Profil')
 
         # File Menu
         logout_action = QAction("Logout", self)
@@ -53,13 +54,88 @@ class MainWindow(QMainWindow):
         contract_list_action.triggered.connect(self.view_contracts)
         event_list_action.triggered.connect(self.view_events)
 
-
+        # profil Menu*
+        change_username_action = QAction("Change your username", self)
+        change_password_action = QAction("Change your password", self)
+        change_username_action.triggered.connect(self.change_username_dialog)
+        change_password_action.triggered.connect(self.change_password_dialog)
 
         file_menu.addAction(exit_action)
         file_menu.addAction(logout_action)
         report_menu.addAction(customer_list_action)
         report_menu.addAction(contract_list_action)
         report_menu.addAction(event_list_action)
+        profil_menu.addAction(change_username_action)
+        profil_menu.addAction(change_password_action)
+
+    def change_username_dialog(self):
+        dialog = mk_create_dialog_window(self, "Change your Username")
+        form_layout = QFormLayout()
+        username_entry = QLineEdit()
+        form_layout.addRow('Choose a New Username', username_entry)
+
+        
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(lambda: self.change_username(dialog, username_entry.text()))
+        buttons.rejected.connect(dialog.reject)
+        form_layout.addWidget(buttons)
+
+        # Appliquer le layout à la fenêtre modale
+        dialog.setLayout(form_layout)
+        dialog.exec()
+
+    def change_username(self, dialog, username):
+        try :
+            self.controller.change_user_username(username)
+            QMessageBox.information(self, "Success", "username Updated successfully.")
+            dialog.accept()  # Ferme la fenêtre après succès
+        except PermissionError as e:
+            QMessageBox.warning(self, "Permission Denied", str(e))
+
+    def change_password_dialog(self):
+        dialog = mk_create_dialog_window(self, "Change your Password")
+        form_layout = QFormLayout()
+        old_password_entry = QLineEdit()
+        form_layout.addRow('Enter your old password', old_password_entry)
+        new_password_entry = QLineEdit()
+        validation_password_entry = QLineEdit()
+        form_layout.addRow('Enter a New password', new_password_entry)
+        form_layout.addRow('Confirm password', validation_password_entry)
+        old_password_entry.setEchoMode(QLineEdit.Password)
+        new_password_entry.setEchoMode(QLineEdit.Password)
+        validation_password_entry.setEchoMode(QLineEdit.Password)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(lambda: self.change_password(
+            dialog,
+            old_password_entry.text(),
+            new_password_entry.text(),
+            validation_password_entry.text()
+            ))
+        buttons.rejected.connect(dialog.reject)
+        form_layout.addWidget(buttons)
+
+        # Appliquer le layout à la fenêtre modale
+        dialog.setLayout(form_layout)
+        dialog.exec()
+
+    def change_password(self, dialog, old_password, new_password, validation_password):
+        if not old_password:
+            QMessageBox.warning(dialog, "Input Error", "Old password cannot be empty.")
+            return
+        if len(new_password) < 8:
+            QMessageBox.warning(dialog, "Input Error", "New password must be at least 8 characters long.")
+            return
+        if new_password != validation_password:
+            QMessageBox.warning(dialog, "Input Error", "New passwords do not match.")
+            return
+        try:
+            self.controller.change_user_password(old_password, new_password)
+            QMessageBox.information(self, "Success", "Password update successfully.")
+            dialog.accept()
+        except PermissionError as e:
+            QMessageBox.warning(self, "Permission Denied", str(e))
+
 
     
     def view_customers(self):

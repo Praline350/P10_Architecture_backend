@@ -148,6 +148,9 @@ class ManagementView(QWidget):
         password_entry = QLineEdit()
         password_entry.setEchoMode(QLineEdit.Password)
         form_layout.addRow("Password:", password_entry)
+        confirm_password_entry = QLineEdit()
+        confirm_password_entry.setEchoMode(QLineEdit.Password)
+        form_layout.addRow("Confirm Password:", confirm_password_entry)
 
         employee_number_entry = QLineEdit()
         form_layout.addRow("Employee Number:", employee_number_entry)
@@ -165,6 +168,12 @@ class ManagementView(QWidget):
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 
         def submit_user_data():
+            if len(password_entry.text()) < 8:
+                QMessageBox.warning(dialog, "Input Error", "New password must be at least 8 characters long.")
+                return
+            if password_entry.text() != confirm_password_entry.text():
+                QMessageBox.warning(dialog, "Input Error", "Passwords do not match.")
+                return
             user_data = {
                 'first_name': first_name_entry.text(),
                 'last_name': last_name_entry.text(),
