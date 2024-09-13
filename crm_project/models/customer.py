@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from sqlalchemy import event
 from datetime import datetime, timezone
 
@@ -15,6 +15,7 @@ class Customer(Base, BaseModelMixin):
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     email = Column(String(100), nullable=False)
+    phone_number = Column(String(15), nullable=True, unique=True)
     company_name = Column(String(100), nullable=True)
     creation_date = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     last_update = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
@@ -28,6 +29,13 @@ class Customer(Base, BaseModelMixin):
     def __repr__(self):
         return f"<Customer(last_name={self.last_name} fist_name={self.first_name})>"
     
+    @validates('phone_number')
+    def validate_phone_number(self, key, phone_number):
+        if phone_number and not phone_number.isdigit():
+            raise ValueError("Invalid phone number format")
+        if len(phone_number) < 8 or len(phone_number) > 15:
+            raise ValueError("Phone number must be between 8 and 15 digits")
+        return phone_number
 
 # Événements SQLAlchemy pour mettre à jour automatiquement les dates
 @event.listens_for(Customer, 'before_insert')

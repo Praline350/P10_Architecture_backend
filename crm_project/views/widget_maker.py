@@ -217,6 +217,8 @@ def mk_create_table(labels_list, items, attributes_list):
 
 def mk_create_table_window(self, title, header, table):
     self.dialog = QDialog(self)
+    self.dialog.setMinimumSize(900, 400)  # Taille minimale
+    self.dialog.setMaximumSize(1200, 800) 
     self.dialog.setWindowTitle(title)
     layout = QVBoxLayout()
     header = QLabel(header)
@@ -227,6 +229,6 @@ def mk_create_table_window(self, title, header, table):
     close_button.clicked.connect(self.dialog.accept)
     layout.addWidget(close_button)
     self.dialog.setLayout(layout)
-    self.dialog.resize(850,400)  # Dimensionner la fenêtre à 600x400 pixels
+    self.dialog.resize(950,400)  # Dimensionner la fenêtre à 600x400 pixels
     self.dialog.exec()
 

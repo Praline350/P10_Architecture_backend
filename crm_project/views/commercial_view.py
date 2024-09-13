@@ -21,6 +21,7 @@ from crm_project.helpers.get_data import *
 from crm_project.views import *
 from crm_project.views.widget_maker import *
 from crm_project.views.main_view import *
+from crm_project.project.permissions import view_authenticated_user, decorate_all_methods
 
 from datetime import datetime, timedelta
 from PySide6.QtCore import Qt, QDate
@@ -33,7 +34,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
                                )
 
 
-
+@decorate_all_methods(view_authenticated_user)
 class CommercialView(QWidget):
     def __init__(self, main_window, controller):
         super().__init__()
@@ -94,6 +95,7 @@ class CommercialView(QWidget):
             'first_name': 'Customer First Name:',
             'last_name': ' Customer Last Name:',
             'email': 'Customer Email:',
+            'phone_number': 'Customer Phone Number',
             'company_name': 'Company Name:'
         }
         mk_create_edit_lines(self, fields_dict)
@@ -103,6 +105,7 @@ class CommercialView(QWidget):
             first_name=self.field_entries['first_name'].text(),
             last_name=self.field_entries['last_name'].text(),
             email=self.field_entries['email'].text(),
+            phone_number=self.field_entries['phone_number'].text(),
             company_name=self.field_entries['company_name'].text()
         ))
         buttons.rejected.connect(dialog.reject)
@@ -139,6 +142,7 @@ class CommercialView(QWidget):
             'first_name': 'Customer First Name',
             'last_name': 'Customer Last Name',
             'email': 'Customer Email',
+            'phone_number': 'Customer Phone Number',
             'company_name': 'Company Name',
         }
         mk_create_edit_lines(self, fields_dict)
@@ -154,6 +158,7 @@ class CommercialView(QWidget):
             first_name=self.field_entries['first_name'].text(),
             last_name=self.field_entries['last_name'].text(),
             email=self.field_entries['email'].text(),
+            phone_number=self.field_entries['phone_number'].text(),
             company_name=self.field_entries['company_name'].text()
         ))
         buttons.rejected.connect(dialog.reject)
@@ -165,7 +170,7 @@ class CommercialView(QWidget):
         try:
             customer_id = self.selected_id
             updated_customer = self.controller.update_customer(customer_id, **updated_data)
-            QMessageBox.information(self, "Success", "Customer updated successfully.")
+            QMessageBox.information(self, "Success", f"Customer {updated_customer.first_name} updated successfully.")
             dialog.accept()  # Ferme la fenêtre après succès
         except ValueError as e:
             QMessageBox.warning(self, "Error", str(e))

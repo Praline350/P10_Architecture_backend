@@ -2,6 +2,7 @@ import sys
 
 from crm_project.helpers.get_data import *
 from crm_project.views.widget_maker import *
+from crm_project.project.permissions import view_authenticated_user
 
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QIcon, QAction, Qt
@@ -68,6 +69,7 @@ class MainWindow(QMainWindow):
         profil_menu.addAction(change_username_action)
         profil_menu.addAction(change_password_action)
 
+    @view_authenticated_user
     def change_username_dialog(self):
         dialog = mk_create_dialog_window(self, "Change your Username")
         form_layout = QFormLayout()
@@ -84,6 +86,7 @@ class MainWindow(QMainWindow):
         dialog.setLayout(form_layout)
         dialog.exec()
 
+    @view_authenticated_user
     def change_username(self, dialog, username):
         try :
             self.controller.change_user_username(username)
@@ -92,6 +95,7 @@ class MainWindow(QMainWindow):
         except PermissionError as e:
             QMessageBox.warning(self, "Permission Denied", str(e))
 
+    @view_authenticated_user
     def change_password_dialog(self):
         dialog = mk_create_dialog_window(self, "Change your Password")
         form_layout = QFormLayout()
@@ -119,6 +123,7 @@ class MainWindow(QMainWindow):
         dialog.setLayout(form_layout)
         dialog.exec()
 
+    @view_authenticated_user
     def change_password(self, dialog, old_password, new_password, validation_password):
         if not old_password:
             QMessageBox.warning(dialog, "Input Error", "Old password cannot be empty.")
@@ -137,14 +142,14 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Permission Denied", str(e))
 
 
-    
+    @view_authenticated_user
     def view_customers(self):
         customers = self.controller.session.query(Customer).all()
         if customers:
             # Préparer les list à afficher
-            labels_list = ["Customer ID", "First Name", "Last Name", "Email", "Company Name", 
+            labels_list = ["Customer ID", "First Name", "Last Name", "Email", "Phone Contact","Company Name", 
                         "Commercial Contact", "Creation Date", "Last Update"]
-            attributes_list = ["id", "first_name", "last_name", "email", "company_name", 
+            attributes_list = ["id", "first_name", "last_name", "email","phone_number" ,"company_name", 
                             "commercial_contact", "creation_date", "last_update"]
             # Créer la table
             table = mk_create_table(labels_list, customers, attributes_list)
@@ -153,12 +158,13 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "Error", "No customers found.")
 
+    @view_authenticated_user
     def view_events(self):
         events = get_events_list(self.controller.session)
         if events:
             for event in events:
                 if event.contract and event.contract.customer:
-                    event.customer_last_name = event.contract.customer.last_name
+                    event.customer_name = event.contract.customer.last_name + event.contract.customer.first_name
             labels_list =  ["Event ID","contract ID", "Name", "Support Contact",
                             "Customer Name", "Start Date","End Date", "Location",
                             "Attendees", "Comment"]
@@ -170,6 +176,7 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "Error", "No Event found.")
 
+    @view_authenticated_user
     def view_contracts(self):
         contracts = get_contracts_list(self.controller.session)
         if contracts:
@@ -184,6 +191,7 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "Error", "No contracts found.")
 
+    
     def logout(self):
         result = self.messagebox_template(
         title="Logout",

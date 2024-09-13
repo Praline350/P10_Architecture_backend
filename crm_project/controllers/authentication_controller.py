@@ -7,6 +7,7 @@ from crm_project.views.admin_view import AdminView
 from crm_project.controllers import *
 from crm_project.controllers.main_controller import MainController
 
+
 class AuthenticationController(MainController):
     def __init__(self, session ,main_window):
         self.session = session
@@ -75,25 +76,3 @@ class AuthenticationController(MainController):
         self.session = SessionLocal()
         self.login_view = LoginWidget(self.main_window, self)
         self.main_window.setCentralWidget(self.login_view)
-
-    def create_user(self, role=None, **user_data):
-        if role is None:
-            role = self.session.query(Role).filter_by(name=RoleName.USER.value).first()
-        try:
-            new_user = User(
-                first_name=user_data['first_name'],
-                last_name=user_data['last_name'],
-                employee_number=user_data['employee_number'],
-                email=user_data['email'],
-                username=user_data['username'],
-                role=role
-            )
-            new_user.set_password(user_data['password'])  # Le hachage et le salage sont gérés ici
-
-            self.session.add(new_user)
-            self.session.commit()
-            return new_user  # Retourne l'utilisateur créé
-
-        except IntegrityError:
-            self.session.rollback()
-            raise ValueError("L'utilisateur avec cet email ou ce nom d'utilisateur existe déjà.")

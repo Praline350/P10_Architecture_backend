@@ -8,11 +8,13 @@ from crm_project.project.permissions import *
 from crm_project.helpers.get_data import *
 
 
+@decorate_all_methods(is_authenticated_user)
 class CommercialController(MainController):
     def __init__(self, session, authenticated_user, login_controller):
         self.session = session
         self.authenticated_user = authenticated_user
         self.login_controller = login_controller
+
 
     @require_permission('create_customer')
     def create_customer(self, **customer_data):
@@ -20,6 +22,7 @@ class CommercialController(MainController):
             first_name=customer_data['first_name'],
             last_name=customer_data['last_name'],
             email=customer_data['email'],
+            phone_number=customer_data['phone_number'],
             company_name=customer_data['company_name'],
             commercial_contact_id=self.authenticated_user.id
         )
@@ -27,6 +30,7 @@ class CommercialController(MainController):
         self.session.commit()
         return new_customer
     
+
     @require_permission('update_customer')
     def update_customer(self,  customer_id, **kwargs):
         try:    
@@ -41,6 +45,7 @@ class CommercialController(MainController):
             self.session.rollback()  
             raise ValueError(f"An error occurred while updating customer: {str(e)}")
     
+
     @require_permission('get_contracts')
     def contract_filter(self, **filter_data):
         query = self.session.query(Contract)
@@ -59,7 +64,7 @@ class CommercialController(MainController):
         query = query.filter(Contract.creation_date <= filter_data['creation_date_before'])
         query = query.filter(Contract.creation_date >= filter_data['creation_date_after'])
         return query.all()
-    
+
     @require_permission('create_event')
     def create_event(self, **event_data):
         new_event = Event(
@@ -69,7 +74,6 @@ class CommercialController(MainController):
             location=event_data['location'],
             attendees=event_data['attendees'],
             comment=event_data['comment'],
-            support_contact_id=event_data['support_contact_id'],
             contract_id=event_data['contract_id']
         )
         self.session.add(new_event)

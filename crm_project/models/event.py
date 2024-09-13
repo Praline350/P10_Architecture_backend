@@ -20,7 +20,7 @@ class Event(Base, BaseModelMixin):
     contract_id = Column(CHAR(36), ForeignKey('contracts.id'), nullable=False)
     contract = relationship("Contract", back_populates="events")
     
-    support_contact_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    support_contact_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     support_contact = relationship("User")
 
     def __repr__(self):

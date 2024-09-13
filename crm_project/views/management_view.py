@@ -3,9 +3,13 @@ from crm_project.views.widget_maker import *
 from crm_project.views import *
 from crm_project.views.main_view import *
 from crm_project.helpers.get_data import *
+from crm_project.project.permissions import view_authenticated_user, decorate_all_methods
+
 from PySide6.QtCore import Qt 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout ,QComboBox, QLineEdit, QMessageBox, QDialog, QFormLayout, QDialogButtonBox, QGridLayout,QSpacerItem, QSizePolicy, QFormLayout
 
+
+decorate_all_methods(view_authenticated_user)
 class ManagementView(QWidget):
     def __init__(self, main_window, controller):
         super().__init__()

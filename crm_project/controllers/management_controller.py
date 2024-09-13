@@ -1,11 +1,12 @@
+from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from crm_project.models import *
-from datetime import datetime
 from crm_project.project.permissions import *
 from crm_project.controllers.main_controller import MainController
 
 
+@decorate_all_methods(is_authenticated_user)
 class ManagementController(MainController):
     def __init__(self, session, authenticated_user, login_controller):
         self.session = session
@@ -27,6 +28,7 @@ class ManagementController(MainController):
         self.session.commit()
         return new_contract
     
+
     @require_permission('create_user')
     def create_user(self,**user_data):
         try:
@@ -54,6 +56,7 @@ class ManagementController(MainController):
             self.session.rollback()
             raise ValueError("L'utilisateur avec cet email ou ce nom d'utilisateur existe déjà.")
 
+
     @require_permission('update_user')
     def update_user(self, user_id, **user_data):
         try:
@@ -73,6 +76,7 @@ class ManagementController(MainController):
             self.session.rollback()  
             raise ValueError(f"An error occurred while updating the user: {str(e)}")
     
+
     @require_permission('delete_user')
     def delete_user(self, user_id):
         try:
