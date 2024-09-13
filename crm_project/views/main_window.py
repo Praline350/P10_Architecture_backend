@@ -147,9 +147,9 @@ class MainWindow(QMainWindow):
         customers = self.controller.session.query(Customer).all()
         if customers:
             # Préparer les list à afficher
-            labels_list = ["Customer ID", "First Name", "Last Name", "Email", "Phone Contact","Company Name", 
+            labels_list = ["Customer ID", "Name", "Email", "Phone Contact","Company Name", 
                         "Commercial Contact", "Creation Date", "Last Update"]
-            attributes_list = ["id", "first_name", "last_name", "email","phone_number" ,"company_name", 
+            attributes_list = ["id", "name", "email","phone_number" ,"company_name", 
                             "commercial_contact", "creation_date", "last_update"]
             # Créer la table
             table = mk_create_table(labels_list, customers, attributes_list)
@@ -164,11 +164,11 @@ class MainWindow(QMainWindow):
         if events:
             for event in events:
                 if event.contract and event.contract.customer:
-                    event.customer_name = event.contract.customer.last_name + event.contract.customer.first_name
+                    event.customer_name = event.contract.customer.name
             labels_list =  ["Event ID","contract ID", "Name", "Support Contact",
                             "Customer Name", "Start Date","End Date", "Location",
                             "Attendees", "Comment"]
-            attributes_list = ["id", "contract_id", "name","support_contact", "customer_last_name",
+            attributes_list = ["id", "contract_id", "name", "support_contact", "customer_name",
                                "start_date", "end_date", "location", "attendees", "comment"]
             table = mk_create_table(labels_list, events, attributes_list)
             mk_create_table_window(self, "Events Table", "Event Informations", table)
@@ -180,10 +180,13 @@ class MainWindow(QMainWindow):
     def view_contracts(self):
         contracts = get_contracts_list(self.controller.session)
         if contracts:
-            labels_list = ["Contract ID", "Status", "Customer",
+            for contract in contracts:
+                contract.customer_name = contract.customer.name
+                contract.customer_contact = f"{contract.customer.email} - {contract.customer.phone_number}"
+            labels_list = ["Contract ID", "Status", "Customer", "Customer Contact",
                            "Commercial Contact", "Creation Date", "Last Update",
                            "Amount Due", "Remaining Amount"]
-            attributes_list = ['id', 'status', 'customer', 'commercial_contact',
+            attributes_list = ['id', 'status', 'customer_name', 'customer_contact','commercial_contact',
                                'creation_date', 'last_update', 'amount_due',
                                'remaining_amount']
             table = mk_create_table(labels_list, contracts, attributes_list)

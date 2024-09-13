@@ -92,8 +92,7 @@ class CommercialView(QWidget):
         self.form_layout = QFormLayout(self)
 
         fields_dict = {
-            'first_name': 'Customer First Name:',
-            'last_name': ' Customer Last Name:',
+            'name': 'Customer Full Name',
             'email': 'Customer Email:',
             'phone_number': 'Customer Phone Number',
             'company_name': 'Company Name:'
@@ -102,8 +101,7 @@ class CommercialView(QWidget):
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(lambda: self.create_customer(dialog, 
-            first_name=self.field_entries['first_name'].text(),
-            last_name=self.field_entries['last_name'].text(),
+            name=self.field_entries['name'].text(),
             email=self.field_entries['email'].text(),
             phone_number=self.field_entries['phone_number'].text(),
             company_name=self.field_entries['company_name'].text()
@@ -119,7 +117,7 @@ class CommercialView(QWidget):
         """
         try:
             new_customer = self.controller.create_customer(**field_entries)
-            QMessageBox.information(self, "Success", f"Customer {new_customer.last_name} created successfully.")
+            QMessageBox.information(self, "Success", f"Customer {new_customer.name} created successfully.")
             dialog.accept()  # Ferme la fenêtre après succès
         except PermissionError as e:
             QMessageBox.warning(self, "Permission Denied", str(e))
@@ -136,11 +134,10 @@ class CommercialView(QWidget):
         customers = get_customers_commercial(self.controller.authenticated_user, self.controller.session)
         display_names = get_display_customer_name(customers)
 
-        mk_create_combox_id_name(self, customers, display_names, "Contract")
+        mk_create_combox_id_name(self, customers, display_names, "Customer")
 
         fields_dict = {
-            'first_name': 'Customer First Name',
-            'last_name': 'Customer Last Name',
+            'name': 'Customer Full Name',
             'email': 'Customer Email',
             'phone_number': 'Customer Phone Number',
             'company_name': 'Company Name',
@@ -154,9 +151,8 @@ class CommercialView(QWidget):
 
         # Boutons pour soumettre ou annuler
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(lambda: self.update_customer(dialog, 
-            first_name=self.field_entries['first_name'].text(),
-            last_name=self.field_entries['last_name'].text(),
+        buttons.accepted.connect(lambda: self.update_customer(dialog, self.combobox.currentData(),
+            name=self.field_entries['name'].text(),
             email=self.field_entries['email'].text(),
             phone_number=self.field_entries['phone_number'].text(),
             company_name=self.field_entries['company_name'].text()
@@ -166,11 +162,10 @@ class CommercialView(QWidget):
         dialog.setLayout(self.form_layout)
         dialog.exec()
 
-    def update_customer(self, dialog, **updated_data):
+    def update_customer(self, dialog, customer_id,  **updated_data):
         try:
-            customer_id = self.selected_id
             updated_customer = self.controller.update_customer(customer_id, **updated_data)
-            QMessageBox.information(self, "Success", f"Customer {updated_customer.first_name} updated successfully.")
+            QMessageBox.information(self, "Success", f"Customer {updated_customer.name} updated successfully.")
             dialog.accept()  # Ferme la fenêtre après succès
         except ValueError as e:
             QMessageBox.warning(self, "Error", str(e))
@@ -186,7 +181,7 @@ class CommercialView(QWidget):
         self.form_layout = QFormLayout(self)
 
         customers = get_customers_list(self.controller.session)
-        display_names = [f"{customer.last_name} {customer.first_name} - {customer.id}" for customer in customers]
+        display_names = get_display_customer_name(customers)
         mk_create_combox_id_name(self, customers, display_names, 'Customer')
         self.combobox.addItem("All Customers", None)
 
@@ -308,7 +303,6 @@ class CommercialView(QWidget):
         dialog = mk_create_dialog_window(self, 'Create a New Event')
         self.form_layout = QFormLayout(self)
 
-        supports = get_support_user(self.controller.session)
         customers = get_customers_commercial(self.controller.authenticated_user, self.controller.session)
         display_name = get_display_customer_name(customers)
 
@@ -319,10 +313,6 @@ class CommercialView(QWidget):
         self.combobox.currentIndexChanged.connect(self.update_contracts_combobox)
         self.update_contracts_combobox()
         self.support_combobox = QComboBox()
-        for support in supports:
-            display_name = f"{support.last_name} {support.first_name}"
-            self.support_combobox.addItem(display_name, support.id)
-        self.form_layout.addRow('Select Support Contact :', self.support_combobox)
 
         fields_dict = {
             'name':' Name of this Event',
@@ -330,11 +320,14 @@ class CommercialView(QWidget):
             'attendees':'Attendees',
         }
         self.field_entries = mk_create_edit_lines(self, fields_dict)
+
         self.comment_entry = QTextEdit()
         self.comment_entry.setFixedHeight(80)
         self.form_layout.addRow('Comment', self.comment_entry)
+
         self.start_date = mk_create_dateedit(self, 'Start Date', QDate.currentDate().addDays(0))
         self.end_date = mk_create_dateedit(self, 'End Date', QDate.currentDate().addDays(0))
+
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(lambda: self.create_event(dialog, 
             name=self.field_entries['name'].text(),

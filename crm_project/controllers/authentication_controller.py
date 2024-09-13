@@ -35,15 +35,15 @@ class AuthenticationController(MainController):
 
 
     def login(self, username, employee_number, password):
-        if not User.validate_username(username):
-            print("Invalid username format.")
-            return None
-        if not User.validate_employee_number(employee_number):
-            print("Invalid employee number format.")
-            return None
-        if not User.validate_password(password):
-            print("Password must be at least 8 characters long.")
-            return None
+        # if not User.validate_username(username):
+        #     print("Invalid username format.")
+        #     return None
+        # if not User.validate_employee_number(employee_number):
+        #     print("Invalid employee number format.")
+        #     return None
+        # if not User.validate_password(password):
+        #     print("Password must be at least 8 characters long.")
+        #     return None
         user = self.session.query(User).filter_by(username=username, employee_number=employee_number).first()
         if user and user.check_password(password):
             print(f"Login successful. User role: {user.role.name}")

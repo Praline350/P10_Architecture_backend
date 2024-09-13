@@ -3,7 +3,7 @@ import enum
 import bcrypt
 
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Table, Enum
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 
 from crm_project.project.config import Base
 from  crm_project.models.mixin_model import BaseModelMixin
@@ -81,22 +81,28 @@ class User(Base, BaseModelMixin):
         # Retourne True si l'utilisateur a la permission passée en argument
         return any(permission.name == permission_name for permission in self.role.permissions)
     
-    @staticmethod
-    def validate_username(username):
-        if not username:
-            return False
-        return bool(re.match("^[a-zA-Z0-9_.-]+$", username))
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+    
+    @validates('username')
+    def validate_username(self, key, username):
+        if not username or not re.match("^[a-zA-Z0-9_.-]+$", username):
+            raise ValueError("Invalid username format")
+        return username
 
-    @staticmethod
-    def validate_employee_number(employee_number):
-        if not employee_number:
-            return False
+    @validates('employee_number')
+    def validate_employee_number(self, key, employee_number):
         employee_number_str = str(employee_number)
-        return employee_number_str.isdigit() and len(employee_number_str) <= 3
+        if not employee_number_str.isdigit() or len(employee_number_str) > 3:
+            raise ValueError("Employee number must be numeric and less than or equal to 3 digits")
+        return employee_number
 
-    @staticmethod
-    def validate_password(password):
-        return len(password) >= 4 # à changer ! (pour le dev pour l'instant)
+    @validates('hashed_password')
+    def validate_password(self, key, password):
+        if len(password) < 3:
+            raise ValueError("Password must be at least 8 characters long")
+        return password
     
     def __repr__(self):
         return (f"<User(id={self.id}, username={self.username}, "

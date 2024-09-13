@@ -111,7 +111,7 @@ class ManagementView(QWidget):
         data = {
             'Email': customer.email,
             'Company': customer.company_name,
-            'Commercial Contact': customer.commercial_contact.last_name,
+            'Commercial Contact': customer.commercial_contact.name,
         }
         if customer:
             mk_display_current_item(self.customer_info_label, data)
@@ -128,8 +128,6 @@ class ManagementView(QWidget):
             dialog.accept()  # Ferme la fenêtre après succès
         except PermissionError as e:
             QMessageBox.warning(self, "Permission Denied", str(e))
-
-    
 
 
     def create_user_window(self):

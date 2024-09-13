@@ -31,8 +31,6 @@ class MainController:
     def change_user_username(self, username):
         try:
             user = self.session.query(User).filter_by(id=self.authenticated_user.id).first()
-            if not User.validate_username(username):
-                raise ValueError("Invalid username")
             user.username = username
             self.session.commit()
             return user
@@ -42,9 +40,6 @@ class MainController:
         
     def change_user_password(self, old_password, new_password):
         try:
-            if not User.validate_password(new_password):
-                print("Password must be at least 8 characters long.")
-                return False
             user = self.session.query(User).filter_by(id=self.authenticated_user.id).first()
             if user and user.check_password(old_password):
                 user.set_password(new_password)

@@ -34,10 +34,6 @@ class ManagementController(MainController):
         try:
             username = f"{user_data['first_name']}.{user_data['last_name']}"
             role = self.session.query(Role).filter_by(name=user_data['role']).one()
-            if not User.validate_username(username):
-                raise ValueError("Invalid username")
-            if not User.validate_employee_number(user_data['employee_number']):
-                raise ValueError("Invalid employee number")
             new_user = User(
                 first_name=user_data['first_name'],
                 last_name=user_data['last_name'],

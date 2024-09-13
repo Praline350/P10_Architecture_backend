@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, DateTime, Boolean, ForeignKey
 import random
 import string
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from sqlalchemy.dialects.mysql import CHAR
 from sqlalchemy import event
 from datetime import datetime, timezone
@@ -41,9 +41,9 @@ class Contract(Base, BaseModelMixin):
     def __repr__(self):
         return f"<Contract(id={self.id}, amount_due={self.amount_due}, status={self.status})>"
     
+
     def validate_commercial_contact(self):
         """Vérifie que le commercial_contact est bien celui associé au customer."""
-
         if self.commercial_contact_id != self.customer.commercial_contact_id:
             raise ValueError("Le commercial contact doit être le même que celui associé au client.")
 

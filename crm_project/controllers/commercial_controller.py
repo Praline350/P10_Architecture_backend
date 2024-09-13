@@ -19,8 +19,7 @@ class CommercialController(MainController):
     @require_permission('create_customer')
     def create_customer(self, **customer_data):
         new_customer = Customer(
-            first_name=customer_data['first_name'],
-            last_name=customer_data['last_name'],
+            name=customer_data['name'],
             email=customer_data['email'],
             phone_number=customer_data['phone_number'],
             company_name=customer_data['company_name'],

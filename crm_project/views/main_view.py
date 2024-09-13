@@ -23,7 +23,7 @@ def update_contract_window(self, dialog):
         contracts = get_contract_commercial(self.controller.authenticated_user, self.controller.session)
     else:
         contracts = get_contracts_list(self.controller.session)
-    display_names = [f"{contract.id} - {contract.customer.last_name}" for contract in contracts]
+    display_names = [f"{contract.id} - {contract.customer.name}" for contract in contracts]
 
     mk_create_combox_id_name(self, contracts, display_names, "Contract")
 

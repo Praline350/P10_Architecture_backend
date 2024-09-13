@@ -133,5 +133,5 @@ def get_status_contract(contract_id, session):
 
     
 def get_display_customer_name(customers):
-    return [f"{customer.id} - {customer.last_name} {customer.first_name}" for customer in customers]
+    return [f"{customer.id} - {customer.name}" for customer in customers]
 

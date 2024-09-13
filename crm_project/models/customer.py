@@ -12,9 +12,8 @@ class Customer(Base, BaseModelMixin):
     __tablename__ = 'customers'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    first_name = Column(String(50), nullable=False)
-    last_name = Column(String(50), nullable=False)
-    email = Column(String(100), nullable=False)
+    name = Column(String(50), nullable=False, unique=True, index=True )
+    email = Column(String(100), nullable=False, unique=True )
     phone_number = Column(String(15), nullable=True, unique=True)
     company_name = Column(String(100), nullable=True)
     creation_date = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
@@ -27,7 +26,7 @@ class Customer(Base, BaseModelMixin):
     contracts = relationship("Contract", back_populates="customer", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<Customer(last_name={self.last_name} fist_name={self.first_name})>"
+        return f"<Customer(name={self.name}, id={self.id}>"
     
     @validates('phone_number')
     def validate_phone_number(self, key, phone_number):
