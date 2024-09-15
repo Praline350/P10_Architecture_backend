@@ -75,12 +75,19 @@ def update_contract(self, dialog, contract_id, **field_entries):
 
 def update_event_window(self, dialog):
     form_layout = QFormLayout()
-    events = get_events_list(self.controller.session)
-    supports = get_support_user(self.controller.session)
-    display_events_names = [event.name for event in events]
-    display_support_names = [support.full_name for support in supports]
+    user = self.controller.authenticated_user
+    if user.role.name.value != 'SUPPORT':
+        events = get_events_list(self.controller.session)
+        supports = get_support_user(self.controller.session)
+        display_support_names = [support.full_name for support in supports]
+        support_data_dict, support_combobox = mk_create_combox_id_name(self, form_layout, supports, display_support_names, 'Support Contact')
+    else:
+        events = get_events_support_list(self.controller.session, user.id)
+        support_combobox = None
+
+    display_events_names = [f"{event.name} - {event.contract.customer.name}" for event in events]
     event_data_dict, event_combobox = mk_create_combox_id_name(self, form_layout, events, display_events_names, 'Events')
-    support_data_dict, support_combobox = mk_create_combox_id_name(self, form_layout, supports, display_support_names, 'Support Contact')
+
     fields_dict = {
         'location': 'Location',
         'attendees': 'Attendees Number',
@@ -99,7 +106,7 @@ def update_event_window(self, dialog):
         location=field_entries['location'].text(),
         start_date=field_entries["start_date"],
         end_date=field_entries['end_date'],
-        support_contact_id=support_combobox.currentData(),
+        support_contact_id=user.id if user.role.name.value == 'SUPPORT' else support_combobox.currentData(),
         attendees=field_entries['attendees'].text(),
         comment=field_entries['comment'].text()
         ))

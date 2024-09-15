@@ -74,6 +74,15 @@ def get_events_list(session):
         session.rollback()
         print(f"Error during get events: {e}")
         return None
+    
+def get_events_support_list(session, support_id):
+    try:
+        events = session.query(Event).filter_by(support_contact_id=support_id).all()
+        return events
+    except SQLAlchemyError as e:
+        session.rollback()
+        print(f"Error during get events: {e}")
+        return None
 
 def get_contracts_list(session):
     try:
