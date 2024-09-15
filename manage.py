@@ -1,6 +1,7 @@
 import argparse
 from crm_project.project.settings import *
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Outils de gestion du projet.")
     parser.add_argument("command", help="Commande à exécuter", choices=["test", "create_db", "drop_db", "init_roles", "create_user", "coverage"])
