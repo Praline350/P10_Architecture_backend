@@ -10,12 +10,12 @@ class MainController:
 
     
     @require_permission('update_contract')
-    def update_contract(self, contract_id, **kwargs):
+    def update_contract(self, contract_id, **event_data):
         try:
             contract = self.session.query(Contract).filter_by(id=contract_id).first()
             if not contract:
                 raise ValueError(f"Contract {contract_id} not found.")
-            for key, value in kwargs.items():
+            for key, value in event_data.items():
                 if key in ['amount_due', 'remaining_amount']:
                     value = int(value)
                 elif key == 'status':
@@ -26,8 +26,44 @@ class MainController:
         except Exception as e:
             self.session.rollback()  
             raise ValueError(f"An error occurred while updating contract: {str(e)}")
+        
+    @require_permission('update_event')
+    def update_event(self, event_id, **event_data):
+        try:
+            print(event_data['support_contact_id'])
+            event = self.session.query(Event).filter_by(id=event_id).first()
+            if not event:
+                raise ValueError(f"Contract {event_id} not found.")
+            for key, value in event_data.items():
+                setattr(event, key, value)
+            self.session.commit()
+        except Exception as e:
+            self.session.rollback()  
+            raise ValueError(f"An error occurred while updating event: {str(e)}")
+        return event
 
+    @require_permission('get_events')
+    def event_filter(self, **filter_data):
+        print(f" filter data : {filter_data}")
+        query = self.session.query(Event)
+        match self.authenticated_user.role.name.value:
+            case 'SUPPORT':
+                if filter_data.get('only'):
+                    query = query.filter_by(support_contact_id=self.authenticated_user.id)
+            case _:
+                if filter_data.get('associate_support'):
+                    query = query.filter(Event.support_contact_id.isnot(None))
+        if filter_data['contract_id'] != None:
+            query = query.filter_by(contract_id=filter_data['contract_id'])
+        if filter_data.get('start_date_after'):
+            query = query.filter(Event.start_date >= filter_data['start_date_after'])
+        if filter_data.get('start_date_before'):
+            query = query.filter(Event.start_date <= filter_data['start_date_before'])
+        if filter_data['location'] != "":
+            query = query.filter_by(location=filter_data["location"])
+        return query.all()
 
+    @is_authenticated_user
     def change_user_username(self, username):
         try:
             user = self.session.query(User).filter_by(id=self.authenticated_user.id).first()
@@ -38,6 +74,7 @@ class MainController:
             self.session.rollback()  
             raise ValueError(f"An error occurred while updating username: {str(e)}")
         
+    @is_authenticated_user
     def change_user_password(self, old_password, new_password):
         try:
             user = self.session.query(User).filter_by(id=self.authenticated_user.id).first()
