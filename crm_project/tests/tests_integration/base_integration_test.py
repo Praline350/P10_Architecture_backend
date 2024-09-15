@@ -3,6 +3,8 @@ from unittest.mock import Mock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from datetime import datetime, timedelta
+
 from crm_project.project.config import Base
 from crm_project.project.settings import initialize_roles_and_permissions
 from crm_project.controllers import *
@@ -29,6 +31,7 @@ class BaseIntegrationTest(unittest.TestCase):
     def setUp(self):
         # Créer une nouvelle session pour chaque test
         self.session = self.Session()
+
         # Mock l'interface 
         self.main_window_mock = Mock()
         self.central_widget_mock = Mock()
@@ -37,42 +40,27 @@ class BaseIntegrationTest(unittest.TestCase):
         self.user_mock = Mock()
         self.user_mock.role.name.value = 'ADMIN'
         self.login_view_mock = Mock()
-        self.user_data = {
-            'first_name':"John",
-            'last_name':"Doe",
-            'employee_number':"234",
-            'email':"john.doe@example.com",
-            'username':"johndoe",
-            'password':"securepassword"
-        }
-        self.user_data2 ={
-            'first_name':"Kate",
-            'last_name':"Mak",
-            'employee_number':"224",
-            'email':"Kate@example.com",
-            'username':"katty",
-            'password':"securepassword",
 
-        }
-        self.user_data3 ={
-            'first_name':"Alex",
-            'last_name':"Bay",
-            'employee_number':"224",
-            'email':"alex@example.com",
-            'password':"securepassword",
-            'role': 'ADMIN'
-
-        }
         self.customer_data = {
-            'first_name': 'Jean',
-            'last_name': 'Dupont',
+            'name': 'Jean Bon',
             'email': 'jean@contact.com',
+            "phone_number": "068796058",
             'company_name': 'event corp'
         }
         self.contract_data = {
+            'id': "C1234",
             'amount_due': 1500,
             'remaining_amount': 1500,
             'status': False,
+        }
+        self.event_data = {
+            'name': 'Mariage',
+            'start_date': datetime.now(),
+            'end_date': datetime.now() + timedelta(days=1),
+            'location': 'Paris',
+            'attendees': 100,
+            'comment': 'Cérémonie dans un grand hall',
+            'contract_id': self.contract_data['id']
         }
 
     def tearDown(self):
@@ -93,3 +81,39 @@ class BaseIntegrationTest(unittest.TestCase):
         Base.metadata.drop_all(cls.engine)
         cls.engine.dispose()
 
+    def create_users(self):
+        self.commercial_user = User(
+            first_name="John",
+            last_name="Doe",
+            employee_number=123,
+            email="johndoe@email.com",
+            username="johndoe",
+            role_id=2 # Commercial
+        )
+        self.commercial_user.set_password("securepassword")
+        self.session.add(self.commercial_user)
+        self.session.commit()
+
+        self.management_user = User(
+            first_name="Alice",
+            last_name="Dye",
+            employee_number=000,
+            email="alice@email.com",
+            username="alicedye",
+            role_id=5 # Management
+        )
+        self.commercial_user.set_password("securepassword")
+        self.session.add(self.management_user)
+        self.session.commit()
+
+        self.support_user = User(
+            first_name="Greg",
+            last_name="Dae",
+            employee_number=321,
+            email="greg@email.com",
+            username="gregdae",
+            role_id=3 # Support
+        )
+        self.commercial_user.set_password("securepassword")
+        self.session.add(self.support_user)
+        self.session.commit()

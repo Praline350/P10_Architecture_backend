@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import Mock
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 
 from crm_project.project.config import Base
@@ -8,7 +8,8 @@ from crm_project.project.settings import initialize_roles_and_permissions
 from crm_project.controllers import *
 from crm_project.controllers.authentication_controller import *
 from crm_project.models import *
-from crm_project.models.user import role_permissions
+from crm_project.models.user import role_permissions, BaseModelMixin
+
 
 
 class BaseUnitTest(unittest.TestCase):
@@ -43,3 +44,33 @@ class BaseUnitTest(unittest.TestCase):
         Base.metadata.drop_all(cls.engine)
         cls.engine.dispose()
 
+
+"""
+   : Test pour le BaseModelMixin :
+"""
+
+class TestModel(Base, BaseModelMixin):
+    __tablename__ = 'test_model'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+class TestBaseModelMixin(BaseUnitTest):
+    def test_tablename(self):
+        # Vérifier que le nom de la table est correctement généré
+        self.assertEqual(TestModel.__tablename__, 'test_model')
+
+    def test_to_dict(self):
+        # Ajouter une instance de TestModel et la convertir en dictionnaire
+        test_model = TestModel(id=1, name="Test Name")
+        self.session.add(test_model)
+        self.session.commit()
+
+        # Appeler la méthode to_dict
+        result_dict = test_model.to_dict()
+
+        # Vérifier que le dictionnaire est correct
+        expected_dict = {
+            'id': 1,
+            'name': "Test Name"
+        }
+        self.assertEqual(result_dict, expected_dict)

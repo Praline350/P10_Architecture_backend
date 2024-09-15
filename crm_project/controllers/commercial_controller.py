@@ -18,25 +18,29 @@ class CommercialController(MainController):
 
     @require_permission('create_customer')
     def create_customer(self, **customer_data):
-        new_customer = Customer(
-            name=customer_data['name'],
-            email=customer_data['email'],
-            phone_number=customer_data['phone_number'],
-            company_name=customer_data['company_name'],
-            commercial_contact_id=self.authenticated_user.id
-        )
-        self.session.add(new_customer)
-        self.session.commit()
-        return new_customer
-    
+        try:
+            new_customer = Customer(
+                name=customer_data['name'],
+                email=customer_data['email'],
+                phone_number=customer_data['phone_number'],
+                company_name=customer_data['company_name'],
+                commercial_contact_id=self.authenticated_user.id
+            )
+            self.session.add(new_customer)
+            self.session.commit()
+            return new_customer
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"An error occurred while creating the customer: {str(e)}")
+
 
     @require_permission('update_customer')
-    def update_customer(self,  customer_id, **kwargs):
+    def update_customer(self,  customer_id, **updated_data):
         try:    
             customer = self.session.query(Customer).filter_by(id=customer_id).first()
             if not customer:
                 raise ValueError(f"Customer {customer_id} not found.")
-            for key, value in kwargs.items():
+            for key, value in updated_data.items():
                 setattr(customer, key, value)
             self.session.commit()
             return customer
@@ -68,17 +72,21 @@ class CommercialController(MainController):
 
     @require_permission('create_event')
     def create_event(self, **event_data):
-        new_event = Event(
-            name=event_data['name'],
-            start_date=event_data['start_date'],
-            end_date=event_data['end_date'],
-            location=event_data['location'],
-            attendees=event_data['attendees'],
-            comment=event_data['comment'],
-            contract_id=event_data['contract_id']
-        )
-        self.session.add(new_event)
-        self.session.commit()
-        return new_event
+        try:
+            new_event = Event(
+                name=event_data['name'],
+                start_date=event_data['start_date'],
+                end_date=event_data['end_date'],
+                location=event_data['location'],
+                attendees=event_data['attendees'],
+                comment=event_data['comment'],
+                contract_id=event_data['contract_id']
+            )
+            self.session.add(new_event)
+            self.session.commit()
+            return new_event
+        except Exception as e:
+            self.session.rollback()  
+            raise ValueError(f"An error occurred while create event: {str(e)}")
     
 

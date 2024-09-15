@@ -16,8 +16,7 @@ class TestCustomerModel(BaseUnitTest):
 
     def test_customer_creation(self):
         customer = Customer(
-            first_name="John",
-            last_name="Doe",
+            name="John Doe",
             email="john.doe@example.com",
             company_name="Doe Corp",
             commercial_contact_id=1
@@ -26,16 +25,43 @@ class TestCustomerModel(BaseUnitTest):
         self.session.commit()
         saved_customer = self.session.query(Customer).first()
         self.assertIsNotNone(saved_customer)
-        self.assertEqual(saved_customer.first_name, "John")
-        self.assertEqual(saved_customer.last_name, "Doe")
+        self.assertEqual(saved_customer.name, "John Doe")
         self.assertEqual(saved_customer.email, "john.doe@example.com")
         self.assertEqual(saved_customer.company_name, "Doe Corp")
+
+    def test_validate_phone_number(self):
+        customer = Customer(
+            name="John Doe",
+            email="john.doe@example.com",
+            company_name="Doe Corp",
+            commercial_contact_id=1
+        )
+        valid_phone_number = "1234567890"
+        result = customer.validate_phone_number("phone_number", valid_phone_number)
+        self.assertEqual(result, valid_phone_number)
+
+        invalid_phone_number = "123abd4"
+        with self.assertRaises(ValueError) as context:
+            customer.validate_phone_number('phone_numer', invalid_phone_number)
+        self.assertEqual(str(context.exception), "Invalid phone number format")
+
+        short_phone_number = "1234567"
+        with self.assertRaises(ValueError) as context:
+            customer.validate_phone_number("phone_number", short_phone_number)
+        
+        self.assertEqual(str(context.exception), "Phone number must be between 8 and 15 digits")
+
+        long_phone_number = "1234567890123456"
+        with self.assertRaises(ValueError) as context:
+            customer.validate_phone_number("phone_number", long_phone_number)
+        
+        self.assertEqual(str(context.exception), "Phone number must be between 8 and 15 digits")
+
 
     def test_customer_creation_date(self):
         # Tester la mise en place automatique des dates de création et de mise à jour
         customer = Customer(
-            first_name="Alice",
-            last_name="Wonderland",
+            name='Alice Test',
             email="alice@example.com",
             commercial_contact_id=1)
         self.session.add(customer)
@@ -51,7 +77,7 @@ class TestContractModel(BaseUnitTest):
     def setUp(self):
         super().setUp()
         # Créer un customer pour tester la relation avec Contract
-        self.customer = Customer(first_name="John", last_name="Doe", email="john.doe@example.com", commercial_contact_id=1)
+        self.customer = Customer(name="John Doe", email="john.doe@example.com", commercial_contact_id=1)
         self.session.add(self.customer)
         self.session.commit()
 
@@ -104,7 +130,7 @@ class TestEventModel(BaseUnitTest):
         super().setUp()
 
         # Créer un client, un contrat, un utilisateur pour les tests
-        self.customer = Customer(first_name="John", last_name="Doe", email="john.doe@example.com", commercial_contact_id=1)
+        self.customer = Customer(name="John Doe", email="john.doe@example.com", commercial_contact_id=1)
         self.session.add(self.customer)
         self.session.commit()
 

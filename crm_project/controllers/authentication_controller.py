@@ -30,26 +30,21 @@ class AuthenticationController(MainController):
             controller = controller_class(self.session, self.authenticated_user, self)
             return view_class(self.main_window, controller)  # Retourne une nouvelle instance de la vue
         else:
-            print(f"Role '{role_name}' not found.")
+            # print(f"Role '{role_name}' not found.")
             return None
 
 
     def login(self, username, employee_number, password):
-        # if not User.validate_username(username):
-        #     print("Invalid username format.")
-        #     return None
-        # if not User.validate_employee_number(employee_number):
-        #     print("Invalid employee number format.")
-        #     return None
-        # if not User.validate_password(password):
-        #     print("Password must be at least 8 characters long.")
-        #     return None
-        user = self.session.query(User).filter_by(username=username, employee_number=employee_number).first()
-        if user and user.check_password(password):
-            print(f"Login successful. User role: {user.role.name}")
-            self.authenticated_user = user
-            return user
-        return None
+        try:
+            user = self.session.query(User).filter_by(username=username, employee_number=employee_number).first()
+            if user and user.check_password(password):
+                # print(f"Login successful. User role: {user.role.name}")
+                self.authenticated_user = user
+                return user
+        except Exception as e:
+            print(f"An error occurred during login: {str(e)}")
+            return None
+
 
     def show_frame(self, user):
         # self.setup_views()
