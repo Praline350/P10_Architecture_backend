@@ -48,7 +48,10 @@ class Role(Base):
     users = relationship("User", back_populates="role")
 
     def __repr__(self):
-        return self.name
+        return self.name.value
+    
+    def __str__(self):
+        return self.name.value
 
 class User(Base, BaseModelMixin):
     __tablename__ = 'users'

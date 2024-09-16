@@ -59,10 +59,6 @@ class ManagementController(MainController):
             user = self.session.query(User).filter_by(id=user_id).first()
             if not user:
                 raise ValueError(f"user {user_id} not found")
-            if not User.validate_username(user_data['username']):
-                raise ValueError("Invalid username")
-            if not User.validate_employee_number(user_data['employee_number']):
-                raise ValueError("Invalid employee number")
             for key, value in user_data.items():
                 if hasattr(user, key):
                     setattr(user, key, value)
@@ -92,6 +88,16 @@ class ManagementController(MainController):
             users = self.session.query(User).all()
             user_list = [user.to_dict() for user in users]
             return user_list
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            print(f"Error during get users: {e}")
+            return None
+        
+    @require_permission('update_user')
+    def get_users_without_authenticated_user(self):
+        try:
+            users = self.session.query(User).filter(User.id != self.authenticated_user.id).all()
+            return users
         except SQLAlchemyError as e:
             self.session.rollback()
             print(f"Error during get users: {e}")

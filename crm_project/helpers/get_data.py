@@ -15,13 +15,14 @@ def get_roles_list():
         print(f"Error while retrieving roles: {e}")
         return None
     
-def get_roles_without_admin():
+def get_roles_without_admin(session):
     try:
-        roles = roles = [role.name for role in RoleName if role.name != 'ADMIN']
+        roles = session.query(Role).filter(Role.id != 1).all() # Admin
         return roles
     except Exception as e:
         print(f"Error while retrieving roles: {e}")
         return None
+
 
 
 def get_customers_commercial(user, session):

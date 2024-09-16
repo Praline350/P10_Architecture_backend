@@ -37,7 +37,7 @@ def update_contract_window(self, dialog):
     field_entries['status'] = status_checkbox
 
     # Connecter l'événement de changement de sélection de la combobox à la fonction
-    contract_combobox.currentIndexChanged.connect(lambda: mk_update_fields(self))
+    contract_combobox.currentIndexChanged.connect(lambda: mk_update_fields(self, contract_combobox, data_dict, field_entries))
 
     # Met a jour les champ en fonction du combobox et retourne le contract selectionné
     contract_id = mk_update_fields(self, contract_combobox, data_dict, field_entries)
