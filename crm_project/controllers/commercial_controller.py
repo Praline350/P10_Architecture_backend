@@ -30,7 +30,6 @@ class CommercialController(MainController):
             self.session.commit()
             return new_customer
         except Exception as e:
-            self.session.rollback()
             raise ValueError(f"An error occurred while creating the customer: {str(e)}")
 
 
@@ -45,13 +44,11 @@ class CommercialController(MainController):
             self.session.commit()
             return customer
         except Exception as e:
-            self.session.rollback()  
             raise ValueError(f"An error occurred while updating customer: {str(e)}")
     
 
     @require_permission('get_contracts')
     def contract_filter(self, **filter_data):
-        print(f"filter data : {filter_data}")
         query = self.session.query(Contract)
         if 'status' in filter_data:
             query = query.filter_by(status=filter_data['status'])
@@ -62,7 +59,6 @@ class CommercialController(MainController):
                 query = query.filter(Contract.remaining_amount > 0)  # Contrats non payés
         if filter_data['customer_id'] != 'All Customers':
             query = query.filter_by(customer_id=filter_data['customer_id'])
-
 
         query = query.filter(Contract.amount_due >= filter_data['amount_due_min'])
         query = query.filter(Contract.amount_due <= filter_data['amount_due_max'])
@@ -86,7 +82,6 @@ class CommercialController(MainController):
             self.session.commit()
             return new_event
         except Exception as e:
-            self.session.rollback()  
             raise ValueError(f"An error occurred while create event: {str(e)}")
     
 

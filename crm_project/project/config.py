@@ -12,5 +12,3 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-#color back #88A0A8 #546A76
-

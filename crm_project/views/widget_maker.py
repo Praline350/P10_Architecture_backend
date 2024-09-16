@@ -12,7 +12,17 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
                                )
 
 
-def mk_setup_widgets(self, layout, grid, columns, widgets):
+# Methods de création de fenêtres
+
+def mk_setup_widgets(parent, layout, grid, columns, widgets):
+    """
+        Setup widgets on the layout's grid
+        args :
+            parent : Fenêtre parent (QWidget)
+            layout : Object QLayout (or child)
+            grid : Object QGrid
+            widgets: List of widgets
+    """
     for index, widget in enumerate(widgets):
         row = index // columns
         column = index % columns
@@ -20,20 +30,34 @@ def mk_setup_widgets(self, layout, grid, columns, widgets):
         widget.setObjectName('management_buttons')
         layout.addLayout(grid)
         layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
-        self.setLayout(layout)
+        parent.setLayout(layout)
 
 def mk_create_dialog_window(parent, title):
+    """
+        Create a dialog window on the parent window
+        args :
+            parent : Objects QWidget
+            title : String : 
+        return :
+            Object QDialog    
+    """
     # Créer la fenêtre modale
     dialog = QDialog(parent)
     dialog.setWindowTitle(title)
     return dialog
 
 
-def mk_create_combox_id_name(self, layout, items, display_names, obj_name):
+def mk_create_combox_id_name(parent, layout, items, display_names, obj_name):
     """
-        Créer une combobox avec le nom et l'id de l'objet.
-        L'ajoute au layout, retourne l'id dans current_data()
-        :self.data_dict:  associe les id au items
+        Make a combobox of items and add it to the layout
+        args:
+            layout: Object Qlayout
+            items: Objects List
+            display_names : String List
+            obj_name: String
+        return:
+            data_dict : Dict of field, value to the selected item
+            combobox: Object Qcombobox
     """
     data_dict = {}
     combobox = QComboBox()
@@ -44,6 +68,9 @@ def mk_create_combox_id_name(self, layout, items, display_names, obj_name):
     return data_dict, combobox
 
 def mk_display_current_item(label, item):
+    """
+        Display values of item in a label
+    """
     info_text = "<ul>"
     if item:
         for key, value in item.items():
@@ -55,8 +82,11 @@ def mk_display_current_item(label, item):
 
 def mk_create_edit_lines(self, layout, fields_dict):
     """
-        Créer dynamiquement des lineEdit avec le label
-        fields_dict : Nom du champ et son label à afficher   
+        Create a dynamic multi edit line fields
+        args:
+            fields_dict : dict : {'field_name':'Field Label'}
+        return:
+            Dict of field_name and entries of editline 
     """
     field_entries = {}
     for field_name, field_label in fields_dict.items():
@@ -68,24 +98,19 @@ def mk_create_edit_lines(self, layout, fields_dict):
 
 def mk_create_dateedit(self, layout, label, initial_date):
     """
-    Crée un QDateEdit pour un champ de date.
-    :param date_value: Valeur de date initiale (datetime).
-    :return: QDateEdit widget.
+        Create a QDateEdit
     """
     date_edit = QDateEdit()
-    date_edit.setCalendarPopup(True)  # Permet d'afficher un calendrier
+    date_edit.setCalendarPopup(True) 
     date_edit.setDate(initial_date)
-
-    # Ajouter au formulaire avec le label
     layout.addRow(label, date_edit)
 
-    # Retourner le QDateEdit pour une utilisation future
-    return date_edit # Définit la date actuelle par défaut
+    return date_edit 
 
 
 def mk_create_checkbox(self, layout, title, checked):
     """
-    Crée un QCheckBox pour un champ booléen (statut).
+        Create a checkbox
     """
     checkbox = QCheckBox()
     checkbox.setChecked(checked)
@@ -93,45 +118,42 @@ def mk_create_checkbox(self, layout, title, checked):
     return checkbox
 
 
-def mk_update_fields(self, combobox, data_dict, field_entries):
-    # Fonction pour mettre à jour les champs de texte avec les données de l'élément sélectionné
+def mk_update_fields(parent, combobox, data_dict, field_entries):
+    """
+        Update fields of parent form with selected item_combobox values 
+        args:
+            combobox : obj Qcombobox with items who want select
+            data_dict : dict with fields, values of item, return of combobox maker
+            field_entries: dict of fields to update
+        return :
+            ID of selected item
+    """
 
     selected_id = combobox.currentData()
     selected_data = data_dict.get(selected_id)
-    # Debug
-    print("Selected contract ID:", selected_id)
-    print("Selected contract:", selected_data)
-    print("Field entries:", field_entries)
-    # Préremplir les champs avec les informations du client
+
     for field_name, entry in field_entries.items():
-        # Utiliser getattr pour accéder aux attributs de l'objet
+        # process according to object type
         if isinstance(entry, QLineEdit):
             value = getattr(selected_data, field_name, '')
-            print(f"Updating field {field_name} with value:", value)  # Debug
             entry.setText(str(value))
         elif isinstance(entry, QCheckBox):
-            # Utiliser getattr pour obtenir un booléen
             value = getattr(selected_data, field_name, False)
             if not isinstance(value, bool):
-                value = bool(value)  # Convertir en bool si nécessaire
-            print(f"Updating checkbox {field_name} with value:", value)  # Debug
-            entry.setChecked(value)  # Mettre à jour les QCheckBox
+                value = bool(value)
+            entry.setChecked(value)
         elif isinstance(entry, QDateEdit):
-            # Utiliser getattr pour obtenir une date (doit être un objet `datetime.date` ou `datetime.datetime`)
+            # Msut be`datetime.date` or `datetime.datetime` object)
             value = getattr(selected_data, field_name, None)
             if value:
-                print(f"Updating QDateEdit {field_name} with value:", value)  # Debug
                 entry.setDate(value)
             else:
-                print(f"Resetting QDateEdit {field_name} to current date")  # Debug
-                entry.setDate(QDate.currentDate())  # Remettre à la date actuelle si pas de valeur
 
+                entry.setDate(QDate.currentDate())
         elif isinstance(entry, QComboBox):
-            # Utiliser getattr pour obtenir la valeur à sélectionner dans la QComboBox
             value = getattr(selected_data, field_name, '')
-            print(f"Updating QComboBox {field_name} with value:", value)  # Debug
             if value:
-                index = entry.findText(str(value))  # Rechercher l'index basé sur le texte
+                index = entry.findText(str(value))  # Get index by the text
                 if index >= 0:
                     entry.setCurrentIndex(index)
                 else:
@@ -141,14 +163,14 @@ def mk_update_fields(self, combobox, data_dict, field_entries):
     return selected_id
 
 
-def mk_create_dialog_button(self, method, **data):
-    self.button = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-    self.button.accepted.connect(lambda: method(**data))
-    self.button.rejected.connect(self.dialog.reject)
-    self.form_layout.addWidget(self.button)
-
-
 def mk_create_radio_buttons(self, layout,  field_dict, checked_key=None):
+    """
+        Create group of radio buttons
+        args:
+            field_dict: dict : {'field_name': ['option1', 'option2']}
+        return:
+            : dict : 
+    """
     radio_button_entries = {}
     for field_name, options in field_dict.items():
         radio_group = QButtonGroup(self)
@@ -169,78 +191,88 @@ def mk_create_radio_buttons(self, layout,  field_dict, checked_key=None):
 
 def get_selected_radio_value(self, radio_button_entries, field_name):
     """
-    Récupère la valeur sélectionnée dans un groupe de boutons radio.
-    :param field_name: Nom du champ pour accéder au groupe de boutons radio.
-    :return: Le texte du bouton sélectionné.
+        Get value of radio buttons
+        args:
+            radio_buttons_entrie: dict :
+            field_name: str : field name for radio buttons access
+        return:
+            : str : selected button text
     """
     radio_group = radio_button_entries[field_name]
-    checked_button = radio_group.checkedButton()  # Récupérer le bouton sélectionné
+    checked_button = radio_group.checkedButton() 
     if checked_button:
-        return checked_button.text()  # Retourne le texte du bouton sélectionné
+        return checked_button.text()  
     return None
         
 
 def mk_create_slider_with_lineedit(self, layout,  label, min_value, max_value, initial_value):
-    # Créer le slider
+    """
+        Create a slider with his line edit & connect their values to each other
+        return:
+            obj QSlider, obj QLineEdit
+    """
     slider = QSlider(Qt.Horizontal)
     slider.setRange(min_value, max_value)
     slider.setValue(initial_value)
 
-    # Créer le QLineEdit associé
     lineedit = QLineEdit(str(initial_value))
     lineedit.setFixedWidth(60)
 
-    # Layout pour le slider et le QLineEdit
     slider_layout = QHBoxLayout()
     slider_layout.addWidget(slider)
     slider_layout.addWidget(lineedit)
-
-    # Ajouter le label et le layout au formulaire
     layout.addRow(label, slider_layout)
 
-    # Connecter le slider et le QLineEdit
     def update_slider_from_lineedit():
         try:
             value = int(lineedit.text())
             slider.setValue(value)
         except ValueError:
-            lineedit.setText(str(slider.value()))  # Remettre la valeur actuelle si la saisie est incorrecte
+            lineedit.setText(str(slider.value()))  
 
     def update_lineedit_from_slider(value):
         lineedit.setText(str(value))
-
     slider.valueChanged.connect(update_lineedit_from_slider)
     lineedit.textChanged.connect(update_slider_from_lineedit)
-
-    # Retourner le slider et le QLineEdit pour une gestion future
     return slider, lineedit
 
 def mk_create_table(labels_list, items, attributes_list):
+    """
+        Create a QTable for item
+        args:
+            labels_list: str list : Name of tabel
+            items: obj list : 
+            attributes_list: str list: name of field to want display
+        return 
+            obj QTable
+    """
     table = QTableWidget()
     table.setColumnCount(len(labels_list))
     table.setHorizontalHeaderLabels(labels_list)
     table.setRowCount(len(items))
-        # Remplir le tableau avec les données des objets
     for row_idx, item in enumerate(items):
         for col_idx, attribute in enumerate(attributes_list):
-            # Utiliser getattr pour obtenir la valeur de l'attribut
             value = getattr(item, attribute, "")
-            
-            # Si c'est un objet de type date, on le formate
             if isinstance(value, (datetime.date, datetime.datetime)):
                 value = value.strftime('%Y-%m-%d')
-
-            # Si c'est un objet lié (comme commercial_contact), on gère différemment
             elif isinstance(value, object) and hasattr(value, 'first_name') and hasattr(value, 'last_name'):
                 value = f"{value.first_name} {value.last_name}"
 
-            # Ajouter l'élément au tableau
             table.setItem(row_idx, col_idx, QTableWidgetItem(str(value)))
 
     table.resizeColumnsToContents()
     return table
 
 def mk_create_table_window(self, title, header, table):
+    """
+        Create dialog window for obj QTable
+        args:
+            title: str : title of dialog window
+            header: str : title of a table
+            table: obj QTable : 
+        return: 
+            obj QDialog
+    """
     dialog = QDialog(self)
     dialog.setMinimumSize(900, 400)  # Taille minimale
     dialog.setMaximumSize(1200, 800) 

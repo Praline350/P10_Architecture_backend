@@ -89,7 +89,7 @@ class CommercialView(QWidget):
         Ouvre une fenêtre modale pour créer un customer.
         """
         dialog = mk_create_dialog_window(self, 'Create a New Customer')
-        self.form_layout = QFormLayout(self)
+        form_layout = QFormLayout(self)
 
         fields_dict = {
             'name': 'Customer Full Name',
@@ -97,18 +97,18 @@ class CommercialView(QWidget):
             'phone_number': 'Customer Phone Number',
             'company_name': 'Company Name:'
         }
-        mk_create_edit_lines(self, fields_dict)
+        field_entries = mk_create_edit_lines(self, form_layout, fields_dict)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(lambda: self.create_customer(dialog, 
-            name=self.field_entries['name'].text(),
-            email=self.field_entries['email'].text(),
-            phone_number=self.field_entries['phone_number'].text(),
-            company_name=self.field_entries['company_name'].text()
+            name=field_entries['name'].text(),
+            email=field_entries['email'].text(),
+            phone_number=field_entries['phone_number'].text(),
+            company_name=field_entries['company_name'].text()
         ))
         buttons.rejected.connect(dialog.reject)
-        self.form_layout.addWidget(buttons)
-        dialog.setLayout(self.form_layout)
+        form_layout.addWidget(buttons)
+        dialog.setLayout(form_layout)
         dialog.exec()
     
     def create_customer(self, dialog,  **field_entries):
@@ -142,7 +142,7 @@ class CommercialView(QWidget):
             'phone_number': 'Customer Phone Number',
             'company_name': 'Company Name',
         }
-        field_entries = mk_create_edit_lines(self, fields_dict)
+        field_entries = mk_create_edit_lines(self, form_layout, fields_dict)
 
         customer_combobox.currentIndexChanged.connect(lambda: mk_update_fields(self))
 
@@ -158,8 +158,8 @@ class CommercialView(QWidget):
             company_name=self.field_entries['company_name'].text()
         ))
         buttons.rejected.connect(dialog.reject)
-        self.form_layout.addWidget(buttons)
-        dialog.setLayout(self.form_layout)
+        form_layout.addWidget(buttons)
+        dialog.setLayout(form_layout)
         dialog.exec()
 
     def update_customer(self, dialog, customer_id,  **updated_data):
@@ -231,7 +231,7 @@ class CommercialView(QWidget):
             filter_data['status'] = True
         else:
             filter_data['status'] = False
-        selected_payment_status = get_selected_radio_value(self,filter_data_entries["radio_button"], 'contract_status')
+        selected_payment_status = get_selected_radio_value(self, filter_data_entries["radio_button"], 'contract_status')
         if selected_payment_status == "Paid":
             filter_data['paid'] = True
         elif selected_payment_status == "Not Paid":
@@ -275,47 +275,48 @@ class CommercialView(QWidget):
 
     def create_event_window(self):
         dialog = mk_create_dialog_window(self, 'Create a New Event')
-        self.form_layout = QFormLayout(self)
+        form_layout = QFormLayout(self)
 
         customers = get_customers_commercial(self.controller.authenticated_user, self.controller.session)
         display_name = get_display_customer_name(customers)
 
-        mk_create_combox_id_name(self, customers, display_name, 'Customer')
+        data_dict, customers_combobox = mk_create_combox_id_name(self, form_layout, customers, display_name, 'Customer')
 
         self.contract_combobox = QComboBox()
-        self.form_layout.addRow('Select Contract : ', self.contract_combobox)
-        self.combobox.currentIndexChanged.connect(self.update_contracts_combobox)
-        self.update_contracts_combobox()
-        self.support_combobox = QComboBox()
+        form_layout.addRow('Select Contract : ', self.contract_combobox)
+
+        self.update_contracts_combobox(data_dict, customers_combobox)
+        customers_combobox.currentIndexChanged.connect(lambda : self.update_contracts_combobox(data_dict, customers_combobox))
+        support_combobox = QComboBox()
 
         fields_dict = {
             'name':' Name of this Event',
             'location': 'Location',
             'attendees':'Attendees',
         }
-        self.field_entries = mk_create_edit_lines(self, fields_dict)
+        field_entries = mk_create_edit_lines(self, form_layout, fields_dict)
 
-        self.comment_entry = QTextEdit()
-        self.comment_entry.setFixedHeight(80)
-        self.form_layout.addRow('Comment', self.comment_entry)
+        comment_entry = QTextEdit()
+        comment_entry.setFixedHeight(80)
+        form_layout.addRow('Comment', comment_entry)
 
-        self.start_date = mk_create_dateedit(self, 'Start Date', QDate.currentDate().addDays(0))
-        self.end_date = mk_create_dateedit(self, 'End Date', QDate.currentDate().addDays(0))
+        start_date = mk_create_dateedit(self, form_layout, 'Start Date', QDate.currentDate().addDays(0))
+        end_date = mk_create_dateedit(self, form_layout, 'End Date', QDate.currentDate().addDays(0))
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(lambda: self.create_event(dialog, 
-            name=self.field_entries['name'].text(),
-            location=self.field_entries['location'].text(),
-            attendees=self.field_entries['attendees'].text(),
-            comment=self.comment_entry.toPlainText(),
-            start_date=self.start_date.date().toPython(),
-            end_date=self.end_date.date().toPython(),
-            support_contact_id=self.support_combobox.currentData(),
+            name=field_entries['name'].text(),
+            location=field_entries['location'].text(),
+            attendees=field_entries['attendees'].text(),
+            comment=comment_entry.toPlainText(),
+            start_date=start_date.date().toPython(),
+            end_date=end_date.date().toPython(),
+            support_contact_id=support_combobox.currentData(),
             contract_id=self.contract_combobox.currentData()
         ))
         buttons.rejected.connect(dialog.reject)
-        self.form_layout.addWidget(buttons)
-        dialog.setLayout(self.form_layout)
+        form_layout.addWidget(buttons)
+        dialog.setLayout(form_layout)
         dialog.exec()
 
     def create_event(self, dialog, **event_data):
@@ -330,16 +331,16 @@ class CommercialView(QWidget):
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
             print(f'"Error", "An error occurred: {e}"')
 
-    def update_contracts_combobox(self):
+    def update_contracts_combobox(self, data_dict, combobox):
         """
         Met à jour la liste des contrats en fonction du client sélectionné.
         """
-        self.selected_customer_id = self.combobox.currentData()
-        self.selected_customer = self.data_dict.get(self.selected_customer_id)
-        if self.selected_customer:
+        selected_customer_id = combobox.currentData()
+        selected_customer = data_dict.get(selected_customer_id)
+        if selected_customer:
             self.contract_combobox.clear()
             # Récupérer et ajouter les contrats du client sélectionné dans le second ComboBox
-            for contract in self.selected_customer.contracts:
+            for contract in selected_customer.contracts:
                 self.contract_combobox.addItem(f"Contract {contract.id}", contract.id)
         else:
           self.contract_combobox.clear()

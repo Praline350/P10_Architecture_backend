@@ -106,7 +106,7 @@ class ManagementView(QWidget):
         field_entries = mk_create_edit_lines(self,form_layout, fields_dict)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(lambda: self.create_contract(dialog, selected_customer_id,
+        buttons.accepted.connect(lambda: self.create_contract(dialog, customer_combobox.currentData(),
             amount_due=field_entries['amount_due'].text(),
             remaining_amount=field_entries['remaining_amount'].text()
             ))
@@ -124,7 +124,7 @@ class ManagementView(QWidget):
         data = {
             'Email': customer.email,
             'Company': customer.company_name,
-            'Commercial Contact': customer.commercial_contact.name,
+            'Commercial Contact': customer.commercial_contact.full_name,
         }
         if customer:
             mk_display_current_item(label, data)

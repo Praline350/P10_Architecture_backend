@@ -1,14 +1,23 @@
 import sys
 import os
-
-import tkinter as tk
-
+import sentry_sdk
 
 from crm_project.project.config import SessionLocal
 from crm_project.controllers.authentication_controller import *
 from crm_project.views.main_window import MainWindow
 from PySide6.QtWidgets import QApplication
 
+
+
+# Initialisation de Sentry
+sentry_sdk.init(
+    dsn="https://1ce0d8ef9a7546ea96b3a53987d0d8b4@o4507962541998080.ingest.de.sentry.io/4507962548944976",
+    traces_sample_rate=1.0,  # 100% des transactions capturées pour le tracing
+    profiles_sample_rate=1.0,  # 100% des transactions profilées
+)
+
+# Test Sentry
+# division_by_zero = 1 / 0
 
 
 
