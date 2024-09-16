@@ -10,12 +10,12 @@ class MainController:
 
     
     @require_permission('update_contract')
-    def update_contract(self, contract_id, **event_data):
+    def update_contract(self, contract_id, **contract_data):
         try:
             contract = self.session.query(Contract).filter_by(id=contract_id).first()
             if not contract:
                 raise ValueError(f"Contract {contract_id} not found.")
-            for key, value in event_data.items():
+            for key, value in contract_data.items():
                 if key in ['amount_due', 'remaining_amount']:
                     value = int(value)
                 elif key == 'status':

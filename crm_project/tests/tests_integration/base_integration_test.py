@@ -1,7 +1,7 @@
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 from datetime import datetime, timedelta
 
@@ -19,7 +19,11 @@ class BaseIntegrationTest(unittest.TestCase):
         # Créer une base de données SQLite en mémoire pour les tests
         cls.engine = create_engine("sqlite:///:memory:")
         Base.metadata.create_all(cls.engine)
-        cls.Session = sessionmaker(bind=cls.engine)
+        # Créer une sessionmaker avec l'engine comme bind
+        session_factory = sessionmaker(bind=cls.engine)
+
+        # Utiliser scoped_session avec la factory
+        cls.Session = scoped_session(session_factory)
         
         # Initialiser les rôles et permissions avec la session de test
         session = cls.Session()
@@ -29,8 +33,9 @@ class BaseIntegrationTest(unittest.TestCase):
 
 
     def setUp(self):
-        # Créer une nouvelle session pour chaque test
-        self.session = self.Session()
+
+        # Récupère la session de classe
+        self.session = self.__class__.Session()
 
         # Mock l'interface 
         self.main_window_mock = Mock()
@@ -41,6 +46,7 @@ class BaseIntegrationTest(unittest.TestCase):
         self.user_mock.role.name.value = 'ADMIN'
         self.login_view_mock = Mock()
 
+        # Données Statiques
         self.customer_data = {
             'name': 'Jean Bon',
             'email': 'jean@contact.com',
@@ -66,8 +72,8 @@ class BaseIntegrationTest(unittest.TestCase):
     def tearDown(self):
         # Annuler les changements après chaque test
         self.session.rollback()   
-        # Suppression des données 
-        self.session.query(User).delete()
+        # # Suppression des données 
+        # self.session.query(User).delete()
         self.session.query(Customer).delete()
         self.session.query(Contract).delete()
         self.session.query(Event).delete()
@@ -77,43 +83,42 @@ class BaseIntegrationTest(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        # Supprimer les tables après tous les tests
+        # Fermer la session et supprimer les tables après tous les tests
+        cls.Session.remove()
         Base.metadata.drop_all(cls.engine)
         cls.engine.dispose()
 
-    def create_users(self):
-        self.commercial_user = User(
+    def create_users(cls, session):
+        cls.commercial_user = User(
             first_name="John",
             last_name="Doe",
-            employee_number=123,
+            employee_number=450,
             email="johndoe@email.com",
-            username="johndoe",
+            username="commercial",
             role_id=2 # Commercial
         )
-        self.commercial_user.set_password("securepassword")
-        self.session.add(self.commercial_user)
-        self.session.commit()
+        cls.commercial_user.set_password("securepassword")
+        session.add(cls.commercial_user)
 
-        self.management_user = User(
+        cls.management_user = User(
             first_name="Alice",
             last_name="Dye",
             employee_number=000,
             email="alice@email.com",
-            username="alicedye",
+            username="management",
             role_id=5 # Management
         )
-        self.commercial_user.set_password("securepassword")
-        self.session.add(self.management_user)
-        self.session.commit()
+        cls.commercial_user.set_password("securepassword")
+        session.add(cls.management_user)
 
-        self.support_user = User(
+        cls.support_user = User(
             first_name="Greg",
             last_name="Dae",
             employee_number=321,
             email="greg@email.com",
-            username="gregdae",
+            username="support",
             role_id=3 # Support
         )
-        self.commercial_user.set_password("securepassword")
-        self.session.add(self.support_user)
-        self.session.commit()
+        cls.commercial_user.set_password("securepassword")
+        session.add(cls.support_user)
+        session.commit()

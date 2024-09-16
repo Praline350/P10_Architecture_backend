@@ -16,17 +16,23 @@ class ManagementController(MainController):
 
     @require_permission('create_contract')
     def create_contract(self, customer_id, **contract_data):
-        customer = self.session.query(Customer).filter_by(id=customer_id).first()
-        commercial_contact_id = customer.commercial_contact_id
-        new_contract = Contract(
-            amount_due=contract_data['amount_due'],
-            remaining_amount=contract_data['remaining_amount'],
-            customer_id=customer_id,
-            commercial_contact_id=commercial_contact_id
-        )
-        self.session.add(new_contract)
-        self.session.commit()
-        return new_contract
+        try:
+            customer = self.session.query(Customer).filter_by(id=customer_id).first()
+            if not customer:
+                raise ValueError(f"Customer with id {customer_id} not found.")
+            commercial_contact_id = customer.commercial_contact_id
+            new_contract = Contract(
+                amount_due=contract_data['amount_due'],
+                remaining_amount=contract_data['remaining_amount'],
+                customer_id=customer_id,
+                commercial_contact_id=commercial_contact_id
+            )
+            self.session.add(new_contract)
+            self.session.commit()
+            return new_contract
+        except Exception as e:
+            self.session.rollback()  
+            raise ValueError(f"An error occurred while create the contract: {str(e)}")
     
 
     @require_permission('create_user')
@@ -34,20 +40,22 @@ class ManagementController(MainController):
         try:
             username = f"{user_data['first_name']}.{user_data['last_name']}"
             role = self.session.query(Role).filter_by(name=user_data['role']).one()
-            new_user = User(
-                first_name=user_data['first_name'],
-                last_name=user_data['last_name'],
-                employee_number=int(user_data['employee_number']),
-                email=user_data['email'],
-                username=username,
-                role=role
-            )
-            new_user.set_password(user_data['password'])  # Le hachage et le salage sont gérés ici
+            if role and username:
+                new_user = User(
+                    first_name=user_data['first_name'],
+                    last_name=user_data['last_name'],
+                    employee_number=int(user_data['employee_number']),
+                    email=user_data['email'],
+                    username=username,
+                    role=role
+                )
+                new_user.set_password(user_data['password'])  # Le hachage et le salage sont gérés ici
 
-            self.session.add(new_user)
-            self.session.commit()
-            return new_user  # Retourne l'utilisateur créé
-
+                self.session.add(new_user)
+                self.session.commit()
+                return new_user
+            else:
+                return None
         except IntegrityError:
             self.session.rollback()
             raise ValueError("L'utilisateur avec cet email ou ce nom d'utilisateur existe déjà.")
@@ -75,9 +83,10 @@ class ManagementController(MainController):
             user = self.session.query(User).filter_by(id=user_id).first()
             if not user:
                 raise ValueError(f"User with ID {user_id} not found.")
-            self.session.delete(user)
-            self.session.commit()
-            return f"User {user.username} successfully deleted."
+            else:
+                self.session.delete(user)
+                self.session.commit()
+                return f"User {user.username} successfully deleted."
         except Exception as e:
             self.session.rollback() 
             raise ValueError(f"An error occurred while deleting the user: {str(e)}")
@@ -90,7 +99,7 @@ class ManagementController(MainController):
             return user_list
         except SQLAlchemyError as e:
             self.session.rollback()
-            print(f"Error during get users: {e}")
+            # print(f"Error during get users: {e}")
             return None
         
     @require_permission('update_user')
@@ -100,5 +109,5 @@ class ManagementController(MainController):
             return users
         except SQLAlchemyError as e:
             self.session.rollback()
-            print(f"Error during get users: {e}")
+            # print(f"Error during get users: {e}")
             return None
