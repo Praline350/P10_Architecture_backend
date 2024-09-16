@@ -166,12 +166,10 @@ class ManagementView(QWidget):
         confirm_password_entry.setEchoMode(QLineEdit.Password)
         form_layout.addRow("Confirm Password:", confirm_password_entry)
 
-        roles = get_roles_without_admin()
-        roles_combobox = QComboBox()
-        if roles:
-            for role in roles:
-                roles_combobox.addItem(role)
-        form_layout.addRow("Select Role:", roles_combobox)
+        roles = get_roles_without_admin(self.controller.session)
+        display_role_names = [role.name.value for role in roles]
+        # print(f" display name {display_role_names}")
+        data_role_dict, roles_combobox = mk_create_combox_id_name(self, form_layout, roles, display_role_names, "Role")
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 

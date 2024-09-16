@@ -180,10 +180,10 @@ def initialize_roles_and_permissions(session=None):
     print("Rôles et permissions ont été initialisés avec succès.")
 
 
-def create_user():
+def create_user(role=None):
     session = SessionLocal()
-
-    role = input("Choississez le role (minuscule): ")
+    if role is None:
+        role = input("Choississez le role (minuscule): ")
     match role:
         case 'admin':
             role = session.query(Role).filter_by(name=RoleName.ADMIN.value).first()

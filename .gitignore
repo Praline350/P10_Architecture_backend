@@ -1,8 +1,11 @@
 venv/
 env/
 htmlcov/
+generate_key.py
+
 .coverage
 .coveragerc
+.env
 
 *.exe
 *.dll
