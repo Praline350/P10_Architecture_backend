@@ -194,27 +194,21 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "Error", "No contracts found.")
 
-    
     def logout(self):
-        result = self.messagebox_template(
-        title="Logout",
-        message="Do you really want to logout?",
-        buttons=QMessageBox.Yes | QMessageBox.No,
-        icon=QMessageBox.NoIcon 
-        )
-        if result:
+        # Créer et afficher une boîte de dialogue
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Logout")
+        msg_box.setText("Do you really want to logout?")
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setIcon(QMessageBox.Question)
+        result = msg_box.exec()
+        if result == QMessageBox.Yes:
             self.menuBar().hide()
             self.controller.show_login_view()
- 
-
-    def messagebox_template(self, title, message, buttons=QMessageBox.Ok, icon=QMessageBox.NoIcon):
-        msg_box = QMessageBox(self)
-        msg_box.setWindowTitle(title)
-        msg_box.setText(message)
-        msg_box.setStandardButtons(buttons)
-        msg_box.setIcon(icon)
-
-        # Affiche la boîte de dialogue et renvoie le résultat
-        result = msg_box.exec()
-        return result
+            success_msg_box = QMessageBox(self)
+            success_msg_box.setWindowTitle("Logout Success")
+            success_msg_box.setText("You have been successfully logged out.")
+            success_msg_box.setIcon(QMessageBox.Information)
+            success_msg_box.setStandardButtons(QMessageBox.Ok)
+            success_msg_box.exec()
 
