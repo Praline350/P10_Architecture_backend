@@ -1,6 +1,3 @@
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-
-from crm_project.project.config import SessionLocal
 from crm_project.models import *
 from crm_project.views import *
 from crm_project.views.admin_view import AdminView
@@ -66,8 +63,5 @@ class AuthenticationController(MainController):
     def show_login_view(self):
         if self.authenticated_user:
             self.authenticated_user = None
-        if self.session:
-            self.session.close()
-        self.session = SessionLocal()
         self.login_view = LoginWidget(self.main_window, self)
         self.main_window.setCentralWidget(self.login_view)
