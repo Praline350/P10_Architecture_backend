@@ -3,8 +3,10 @@ env/
 htmlcov/
 generate_key.py
 
-.coverage
-.coveragerc
+.coverage_controllers
+.coverage_views
+.coveragerc_controllers
+.coveragerc_views
 .env
 
 *.exe
