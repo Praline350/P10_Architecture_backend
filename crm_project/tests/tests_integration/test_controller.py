@@ -1,7 +1,10 @@
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+
 from crm_project.controllers import *
 from crm_project.controllers.authentication_controller import *
 from crm_project.models import *
 from crm_project.tests.tests_integration.base_integration_test import *
+from PySide6.QtWidgets import QApplication
 
 
 class TestCommercialController(BaseIntegrationTest):
@@ -134,6 +137,46 @@ class TestCommercialController(BaseIntegrationTest):
             new_event = self.commercial_controller.create_event(**self.event_data)
             self.assertIsNone(new_event)
 
+    def test_update_event(self):
+        self.commercial_controller.authenticated_user = self.commercial_user
+        new_event = self.commercial_controller.create_event(**self.event_data)
+        self.assertIsNotNone(new_event)
+        updated_data = {
+            'name': 'Dj',
+            'attendees': 70,
+            'support_contact_id': self.support_user.id
+        }
+        self.commercial_controller.authenticated_user = self.management_user
+        updated_event = self.commercial_controller.update_event(new_event.id, **updated_data)
+        self.assertIsNotNone(updated_event)
+
+        with self.assertRaises(ValueError) as context:
+            self.commercial_controller.update_event(event_id=999, **updated_data)
+        self.assertIn("An error occurred while updating event:", str(context.exception))
+
+
+    def test_event_filter(self):
+        self.commercial_controller.authenticated_user = self.commercial_user
+        new_event = self.commercial_controller.create_event(**self.event_data)
+        self.assertIsNotNone(new_event)
+        filter_data = {
+            'only': False,  # Pour SUPPORT, on filtre par support_contact_id
+            'contract_id': 'C1234',
+            'location': 'Paris'
+        }
+        self.commercial_controller.authenticated_user = self.management_user
+        filter_events = self.commercial_controller.event_filter(**filter_data)
+        self.assertIsNotNone(filter_events)
+        self.assertEqual(len(filter_events), 1)  # Vérifie qu'il y a bien 1 événement retourné
+        self.assertEqual(filter_events[0].location, 'Paris')
+
+    def test_init_controllers(self):
+        main_controller = MainController(self.session, self.commercial_user)
+        suppport_controller = SupportController(self.session, self.commercial_user, AuthenticationController)
+        self.assertIsNotNone(main_controller)
+        self.assertIsNotNone(suppport_controller)
+
+
     def test_contract_filter(self):
         # Test le filtre de contrat
 
@@ -159,6 +202,22 @@ class TestCommercialController(BaseIntegrationTest):
         self.commercial_controller.authenticated_user = self.support_user
         with self.assertRaises(PermissionError):
             self.commercial_controller.contract_filter(**filter_data)
+
+    def test_change_username(self):
+        self.commercial_controller.authenticated_user = self.commercial_user
+        user = self.commercial_controller.change_user_username('commercial')
+        self.assertEqual(user.username, 'commercial')
+
+        with self.assertRaises(ValueError) as context:
+            self.commercial_controller.change_user_username('ERROR ERROR')
+        self.assertIn("An error occurred while updating username: ", str(context.exception))
+
+    def test_change_password(self):
+        self.commercial_controller.authenticated_user = self.commercial_user
+        old_password = 'securepassword'
+        new_password = 'password'
+        result = self.commercial_controller.change_user_password(old_password, new_password)
+        self.assertTrue(result)
 
 
 class TestManagementController(BaseIntegrationTest):
@@ -285,6 +344,22 @@ class TestManagementController(BaseIntegrationTest):
             self.assertIsNone(new_contract)
         self.assertIn("Customer with id", str(context.exception))
 
+    def test_update_contract(self):
+        self.management_controller.authenticated_user = self.management_user
+        new_contract = self.management_controller.create_contract(self.customer.id, **self.contract_data_2)
+        self.assertIsNotNone(new_contract)
+        updated_data = {
+            'amount_due': 4000,
+            'remaining_amount' : 0,
+            'status': True
+        }
+        updated_contract = self.management_controller.update_contract(new_contract.id, **updated_data)
+        self.assertIsNotNone(updated_contract)
+
+        with self.assertRaises(ValueError) as context:
+            self.management_controller.update_contract(contract_id="F4567", **updated_data)
+        self.assertIn("An error occurred while updating contract:", str(context.exception))
+
     def test_get_user_list(self):
         # test la récupération des user par les manageurs
 
@@ -344,48 +419,74 @@ class TestManagementController(BaseIntegrationTest):
         self.assertIn("An error occurred while deleting the user", str(context.exception))
 
 
-class TestMainController(BaseIntegrationTest):
+class TestLoginController(BaseIntegrationTest):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         session = cls.Session()
         cls.create_users(cls, session)
         session.close()
+        cls.app = QApplication([])
 
     def setUp(self):
         super().setUp()
-        self.commercial_user = self.session.query(User).filter_by(username='commercial').first()
-        self.support_user = self.session.query(User).filter_by(username='support').first()
-        self.management_user = self.session.query(User).filter_by(username='management').first()
+        self.commercial_user = self.session.query(User).filter_by(username='commercial').one()
+        self.support_user = self.session.query(User).filter_by(username='support').one()
+        self.management_user = self.session.query(User).filter_by(username='management').one()
+        self.main_window = MainWindow()
+        self.controller = AuthenticationController(self.session,self.main_window_mock)
 
-        self.controller = MainController(self.session, Mock())
-        self.support_controller = SupportController(self.session, self.support_user ,Mock() )
-        self.customer = Customer(commercial_contact_id=self.commercial_user.id, **self.customer_data)
-        self.session.add(self.customer)
-        self.session.commit()
-        self.contract_data_2 = {
-            'amount_due': 1500,
-            'remaining_amount': 1500,
-            'status': False,
-            'customer_id': self.customer.id,
-            'commercial_contact_id': self.customer.commercial_contact_id
-        }
-        self.contract = Contract( **self.contract_data_2)
-        self.session.add(self.contract)
-        self.session.commit()
+    def test_login(self):
+        user = self.controller.login('commercial', 450, 'securepassword')
+        self.assertEqual(self.controller.authenticated_user, user)
+        print('login Ok')
+    
 
-    def test_update_contract(self):
-        self.controller.authenticated_user = self.management_user
-        updated_data = {
-            'amount_due': '5000',
-            'remaining_amount': '0',
-            'status': True,
-        }
-        print(f"Contract ID: {self.contract.id}")
-        updated_contract = self.controller.update_contract(self.contract.id, **updated_data)
-        self.assertIsNotNone(updated_contract)
-
+    def test_login_raises_exception(self):
+        
         with self.assertRaises(ValueError) as context:
-            invalid_contract = self.controller.update_contract(999, **updated_data)
-            self.assertIsNone(invalid_contract)
-        self.assertIn(f"An error occurred while updating contract: Contract 999 not found.", str(context.exception))
+            user = self.controller.login('commerciall', 450, 'securepassword')
+        self.assertIn("An error occurred during login: ", str(context.exception))
+
+
+    def test_get_view_for_commercial(self):
+        # Test le mapping de la vue avec son controller
+
+        self.controller.authenticated_user = self.commercial_user
+        view = self.controller.get_view_for_role('COMMERCIAL')
+
+        self.assertIsInstance(view, CommercialView)
+        self.assertIsInstance(view.controller, CommercialController)
+
+        # check session & Oauth user
+        self.assertEqual(view.controller.session, self.session)
+        self.assertEqual(view.controller.authenticated_user, self.commercial_user)
+
+    def test_except_view_role(self):
+        # Test l'exception en cas de role invalid 
+
+        self.controller.authenticated_user = self.commercial_user
+        with self.assertRaises(ValueError) as context:
+            self.controller.get_view_for_role('INVALID_ROLE')
+        self.assertIn("Role 'INVALID_ROLE' not found", str(context.exception))
+
+
+    def test_show_frame_for_commercial(self):
+        # test l'affichage de la bonne vue pour le bon role
+
+        self.controller.authenticated_user = self.commercial_user
+        result = self.controller.show_frame(self.commercial_user)
+
+        self.assertTrue(result)
+        central_widget = self.main_window.centralWidget()
+        self.assertIsNotNone(central_widget)
+
+    def test_show_login_view(self):
+        # Appeler show_login_view
+        self.controller.show_login_view()
+
+        # Vérifier que login_view a été défini
+        self.assertIsNotNone(self.controller.login_view)
+
+        # Vérifier que le widget central de la fenêtre principale est maintenant LoginWidget
+        central_widget = self.main_window.centralWidget()

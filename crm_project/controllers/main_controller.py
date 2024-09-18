@@ -12,7 +12,7 @@ class MainController:
     @require_permission('update_contract')
     def update_contract(self, contract_id, **contract_data):
         try:
-            contract = self.session.query(Contract).filter_by(id=contract_id).first()
+            contract = self.session.query(Contract).filter_by(id=contract_id).one()
             if not contract:
                 raise ValueError(f"Contract {contract_id} not found.")
             for key, value in contract_data.items():
@@ -24,21 +24,19 @@ class MainController:
             self.session.commit()
             return contract
         except Exception as e:
-            self.session.rollback()  
             raise ValueError(f"An error occurred while updating contract: {str(e)}")
         
     @require_permission('update_event')
     def update_event(self, event_id, **event_data):
         try:
             print(event_data['support_contact_id'])
-            event = self.session.query(Event).filter_by(id=event_id).first()
+            event = self.session.query(Event).filter_by(id=event_id).one()
             if not event:
                 raise ValueError(f"Contract {event_id} not found.")
             for key, value in event_data.items():
                 setattr(event, key, value)
             self.session.commit()
         except Exception as e:
-            self.session.rollback()  
             raise ValueError(f"An error occurred while updating event: {str(e)}")
         return event
 
@@ -66,32 +64,21 @@ class MainController:
     @is_authenticated_user
     def change_user_username(self, username):
         try:
-            user = self.session.query(User).filter_by(id=self.authenticated_user.id).first()
+            user = self.session.query(User).filter_by(id=self.authenticated_user.id).one()
             user.username = username
             self.session.commit()
             return user
         except Exception as e:
-            self.session.rollback()  
             raise ValueError(f"An error occurred while updating username: {str(e)}")
         
     @is_authenticated_user
     def change_user_password(self, old_password, new_password):
         try:
-            user = self.session.query(User).filter_by(id=self.authenticated_user.id).first()
+            user = self.session.query(User).filter_by(id=self.authenticated_user.id).one()
             if user and user.check_password(old_password):
                 user.set_password(new_password)
                 self.session.commit()
                 return True
-            else:
-                print("Old password is incorrect or user not found.")
-                return False
-        except SQLAlchemyError as db_error:
-            # Gérer les erreurs liées à la base de données
-            print(f"Database error occurred: {str(db_error)}")
-            self.session.rollback()  # Annuler la transaction en cas d'erreur
-            return False
-        
         except Exception as e:
-            # Gérer les autres erreurs non spécifiées
-            print(f"An unexpected error occurred: {str(e)}")
-            return False
+            raise ValueError(f"An unexpected error occurred: {str(e)}")
+

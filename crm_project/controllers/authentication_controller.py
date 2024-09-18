@@ -1,7 +1,9 @@
 from crm_project.models import *
 from crm_project.views import *
+from crm_project.views.commercial_view import CommercialView
 from crm_project.views.admin_view import AdminView
 from crm_project.controllers import *
+from crm_project.controllers.commercial_controller import CommercialController
 from crm_project.controllers.main_controller import MainController
 
 
@@ -22,25 +24,26 @@ class AuthenticationController(MainController):
 
     def get_view_for_role(self, role_name):
         """Créer et retourner la vue correspondant au rôle si elle n'existe pas déjà"""
-        view_class, controller_class = self.view_mapping.get(role_name, (None, None))
-        if view_class and controller_class:
+
+        try:
+            view_class, controller_class = self.view_mapping.get(role_name, (None, None))
+            if not view_class or not controller_class:
+                raise ValueError(f"Role '{role_name}' not found in view mapping.")
             controller = controller_class(self.session, self.authenticated_user, self)
             return view_class(self.main_window, controller)  # Retourne une nouvelle instance de la vue
-        else:
-            # print(f"Role '{role_name}' not found.")
-            return None
+        except Exception as e:
+            raise ValueError(f"Failed to get view for role '{role_name}': {str(e)}")
 
 
     def login(self, username, employee_number, password):
         try:
-            user = self.session.query(User).filter_by(username=username, employee_number=employee_number).first()
+            user = self.session.query(User).filter_by(username=username, employee_number=employee_number).one()
             if user and user.check_password(password):
                 # print(f"Login successful. User role: {user.role.name}")
                 self.authenticated_user = user
                 return user
         except Exception as e:
-            print(f"An error occurred during login: {str(e)}")
-            return None
+            raise ValueError(f"An error occurred during login: {str(e)}")
 
 
     def show_frame(self, user):

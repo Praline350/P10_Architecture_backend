@@ -160,7 +160,7 @@ class MainWindow(QMainWindow):
 
     @view_authenticated_user
     def view_events(self):
-        events = get_events_list(self.controller.session)
+        events = get_events_list(self.controller)
         if events:
             for event in events:
                 if event.contract and event.contract.customer:
@@ -178,7 +178,7 @@ class MainWindow(QMainWindow):
 
     @view_authenticated_user
     def view_contracts(self):
-        contracts = get_contracts_list(self.controller.session)
+        contracts = get_contracts_list(self.controller)
         if contracts:
             for contract in contracts:
                 contract.customer_name = contract.customer.name

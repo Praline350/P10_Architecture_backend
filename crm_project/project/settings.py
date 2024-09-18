@@ -5,10 +5,13 @@ from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 
-from crm_project.project.config import engine, Base, SessionLocal
+from crm_project.project.config import  Base, configure_database
 from crm_project.models import *
 from crm_project.controllers import *
 
+
+
+session, engine = configure_database()
 
 
 def run_coverage(test_path=None):
@@ -181,7 +184,6 @@ def initialize_roles_and_permissions(session=None):
 
 
 def create_user(role=None):
-    session = SessionLocal()
     if role is None:
         role = input("Choississez le role (minuscule): ")
     match role:
