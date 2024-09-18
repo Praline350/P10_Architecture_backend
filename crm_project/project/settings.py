@@ -14,8 +14,8 @@ from crm_project.controllers import *
 session, engine = configure_database()
 
 
-def run_coverage(test_path=None):
-    """Exécuter les tests avec coverage."""
+def run_coverage(test_path=None, use_pytest=False):
+    """Exécuter les tests avec coverage, avec support pour pytest et unittest."""
     # Ajouter crm_project au PYTHONPATH
     project_root = os.path.dirname(os.path.abspath(__file__))
     crm_project_path = os.path.join(project_root, 'crm_project')
@@ -23,20 +23,34 @@ def run_coverage(test_path=None):
     if crm_project_path not in sys.path:
         sys.path.insert(0, crm_project_path)
 
-    if test_path:
-        # Si un chemin de tests est fourni, exécute les tests sur ce chemin
-        if os.path.isdir(test_path):
-            test_command = ["coverage", "run", "--source=crm_project", "-m", "unittest", "discover", "-s", test_path]
-        else:
-            test_command = ["coverage", "run", "--source=crm_project", "-m", "unittest", test_path]
+    if use_pytest:
+        config_file = ".coveragerc_views"
+        data_file = ".coverage_views"
+        pytest_file_path = os.path.join('crm_project', 'tests', 'tests_integration', 'test_views.py')
+        test_command = ["coverage", "run", f"--rcfile={config_file}", "--source=crm_project", f"--data-file={data_file}", "-m", "pytest", pytest_file_path]
+        
+        
     else:
-        # Si aucun chemin n'est spécifié, exécuter tous les tests
-        test_dir = os.path.join(project_root, 'crm_project', 'tests')
-        test_command = ["coverage", "run", "--source=crm_project", "-m", "unittest", "discover", "-s", test_dir]
+        # Si unittest est utilisé, exécute les tests avec unittest
+        data_file = ".coverage_controllers"
+        config_file = ".coveragerc_controllers"
+        if test_path:
+            # Si un chemin de tests est fourni, exécute les tests sur ce chemin avec unittest
+            if os.path.isdir(test_path):
+                test_command = ["coverage", "run", f"--rcfile={config_file}", "--source=crm_project", f"--data-file={data_file}", "-m", "unittest", "discover", "-s", test_path]
+            else:
+                test_command = ["coverage", "run", f"--rcfile={config_file}", "--source=crm_project", f"--data-file={data_file}", "-m", "unittest", test_path]
+        else:
+            # Si aucun chemin n'est spécifié, exécuter tous les tests avec unittest
+            test_dir = os.path.join(project_root, 'crm_project', 'tests')
+            test_command = ["coverage", "run", f"--rcfile={config_file}", "--source=crm_project", f"--data-file={data_file}", "-m", "unittest", "discover", "-s", test_dir]
 
+    # Exécuter la commande de test
     subprocess.run(test_command)
-    subprocess.run(["coverage", "report"])  # Générer le rapport dans le terminal
-    subprocess.run(["coverage", "html"])  # Générer un rapport HTML
+
+    # Générer les rapports de couverture spécifiques
+    subprocess.run(["coverage", "report", f"--data-file={data_file}"])  # Générer le rapport dans le terminal
+    subprocess.run(["coverage", "html", f"--data-file={data_file}"])  # Générer un rapport HTML
 
 
 def run_tests(test_path=None):

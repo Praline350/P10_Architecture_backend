@@ -1,9 +1,7 @@
 import os
 
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-
 from getpass import getpass
 from dotenv import load_dotenv
 

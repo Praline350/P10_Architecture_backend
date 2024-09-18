@@ -6,6 +6,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Outils de gestion du projet.")
     parser.add_argument("command", help="Commande à exécuter", choices=["test", "create_db", "drop_db", "init_roles", "create_user", "coverage"])
     parser.add_argument("test_path", nargs="?", help="Chemin vers un fichier de test ou une classe de test spécifique", default=None)
+    parser.add_argument("--pytest", action="store_true", help="Utiliser pytest au lieu de unittest pour exécuter les tests")
 
     args = parser.parse_args()
 
@@ -20,7 +21,7 @@ if __name__ == "__main__":
             print("Tests en cours d'exécution...")
             run_tests(args.test_path)
         case "coverage":
-            run_coverage(args.test_path)
+            run_coverage(args.test_path, use_pytest=args.pytest)
         case "create_user":
             create_user()
         case _:
