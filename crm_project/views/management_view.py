@@ -80,7 +80,7 @@ class ManagementView(QWidget):
         dialog = mk_create_dialog_window(self, "Create a New Contract")
         form_layout = QFormLayout(self)
         # Liste déroulante des clients
-        customers = get_customers_list(self.controller.session)
+        customers = get_customers_list(self.controller)
         display_names = get_display_customer_name(customers)
         data_dict, customer_combobox = mk_create_combox_id_name(self,form_layout,  customers, display_names, "Customer")
 
@@ -134,7 +134,6 @@ class ManagementView(QWidget):
         """
         Crée un contrat avec les données fournies.
         """
-        print(customer_id)
         try:
             self.controller.create_contract(customer_id, **field_entries)
             QMessageBox.information(self, "Success", "Contract created successfully.")
@@ -166,9 +165,8 @@ class ManagementView(QWidget):
         confirm_password_entry.setEchoMode(QLineEdit.Password)
         form_layout.addRow("Confirm Password:", confirm_password_entry)
 
-        roles = get_roles_without_admin(self.controller.session)
+        roles = get_roles_without_admin(self.controller)
         display_role_names = [role.name.value for role in roles]
-        # print(f" display name {display_role_names}")
         data_role_dict, roles_combobox = mk_create_combox_id_name(self, form_layout, roles, display_role_names, "Role")
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -203,7 +201,6 @@ class ManagementView(QWidget):
         Crée un contrat avec les données fournies.
         """
         try:
-            # Logique pour créer le contrat via le contrôleur
             new_user = self.controller.create_user( **user_data)
             QMessageBox.information(self, "Success", f"User {new_user.last_name} {new_user.first_name} created successfully.")
             dialog.accept()  # Ferme la fenêtre après succès
@@ -228,7 +225,7 @@ class ManagementView(QWidget):
             'email': 'Email Contact',
         }
         field_entries = mk_create_edit_lines(self, form_layout, fields_dict)
-        roles = get_roles_without_admin(self.controller.session)
+        roles = get_roles_without_admin(self.controller)
         display_role_names = [role.name.value for role in roles]
         # print(f" display name {display_role_names}")
         data_role_dict, roles_combobox = mk_create_combox_id_name(self, form_layout, roles, display_role_names, "Role")
@@ -256,7 +253,6 @@ class ManagementView(QWidget):
         dialog.exec()
 
     def update_user(self, dialog, user_id, **user_data):
-        print(f"user data :{user_data}")
         try:
             updated_user = self.controller.update_user(user_id, **user_data)
             QMessageBox.information(self, "Success", f"{updated_user.last_name} {updated_user.first_name} updated successfully.")

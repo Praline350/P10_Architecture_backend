@@ -20,9 +20,9 @@ def update_contract_window(self, dialog):
     form_layout = QFormLayout(self)
     # Fenêtre modale pour mettre à jour un client
     if self.controller.authenticated_user.role.name == 'COMMERCIAL':
-        contracts = get_contract_commercial(self.controller.authenticated_user, self.controller.session)
+        contracts = get_contract_commercial(self.controller, self.controller.authenticated_user)
     else:
-        contracts = get_contracts_list(self.controller.session)
+        contracts = get_contracts_list(self.controller)
     display_names = [f"{contract.id} - {contract.customer.name}" for contract in contracts]
 
     data_dict, contract_combobox = mk_create_combox_id_name(self, form_layout,  contracts, display_names, "Contract")
@@ -58,11 +58,8 @@ def update_contract_window(self, dialog):
 
 
 def update_contract(self, dialog, contract_id, **field_entries):
-    print(f"field entries :{field_entries}")
     try :
-        print(f"contract id : {contract_id}")
         updated_contract = self.controller.update_contract(contract_id, **field_entries)
-        print(f"new contract : {updated_contract.to_dict()}")
         QMessageBox.information(self, "Success", f"Contract {updated_contract.id} updated successfully.")
         dialog.accept()  # Ferme la fenêtre après succès
     except ValueError as e:
@@ -77,12 +74,12 @@ def update_event_window(self, dialog):
     form_layout = QFormLayout()
     user = self.controller.authenticated_user
     if user.role.name.value != 'SUPPORT':
-        events = get_events_list(self.controller.session)
-        supports = get_support_user(self.controller.session)
+        events = get_events_list(self.controller)
+        supports = get_support_user(self.controller)
         display_support_names = [support.full_name for support in supports]
         support_data_dict, support_combobox = mk_create_combox_id_name(self, form_layout, supports, display_support_names, 'Support Contact')
     else:
-        events = get_events_support_list(self.controller.session, user.id)
+        events = get_events_support_list(self.controller, user.id)
         support_combobox = None
 
     display_events_names = [f"{event.name} - {event.contract.customer.name}" for event in events]
@@ -119,7 +116,6 @@ def update_event_window(self, dialog):
 
 
 def update_event(self, dialog, event_id, **field_entries):
-    print(field_entries)
     try:
         updated_event = self.controller.update_event(event_id,**field_entries)
         QMessageBox.information(self, "Success", f"Event {updated_event.name} updated successfully.")
@@ -137,7 +133,7 @@ def filter_event_window(self, dialog):
         Ouvre une fenêtre modale pour update un evenement 
     """
     form_layout = QFormLayout()
-    contracts = get_contracts_list(self.controller.session)
+    contracts = get_contracts_list(self.controller)
     display_names = [f"{contract.id} - {contract.customer.name}" for contract in contracts]
     data_dict, contract_combobox = mk_create_combox_id_name(self, form_layout, contracts, display_names, 'Contract')
     contract_combobox.addItem("All Contracts", None)

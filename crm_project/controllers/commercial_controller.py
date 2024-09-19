@@ -1,7 +1,3 @@
-from datetime import datetime
-
-from sqlalchemy.orm.attributes import flag_modified
-
 from crm_project.controllers.main_controller import MainController
 from crm_project.models import *
 from crm_project.project.permissions import *
@@ -18,6 +14,8 @@ class CommercialController(MainController):
 
     @require_permission('create_customer')
     def create_customer(self, **customer_data):
+        """Add new customer with customer data"""
+
         try:
             new_customer = Customer(
                 name=customer_data['name'],
@@ -35,6 +33,8 @@ class CommercialController(MainController):
 
     @require_permission('update_customer')
     def update_customer(self,  customer_id, **updated_data):
+        """Update customer with his ID and updated data"""
+
         try:    
             customer = self.session.query(Customer).filter_by(id=customer_id).first()
             if not customer:
@@ -49,6 +49,8 @@ class CommercialController(MainController):
 
     @require_permission('get_contracts')
     def contract_filter(self, **filter_data):
+        """Return contracts list with apply filters"""
+
         query = self.session.query(Contract)
         if 'status' in filter_data:
             query = query.filter_by(status=filter_data['status'])
@@ -68,6 +70,7 @@ class CommercialController(MainController):
 
     @require_permission('create_event')
     def create_event(self, **event_data):
+        """Create a new event with event data"""
         try:
             new_event = Event(
                 name=event_data['name'],

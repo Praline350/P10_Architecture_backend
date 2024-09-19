@@ -88,12 +88,14 @@ class MainWindow(QMainWindow):
 
     @view_authenticated_user
     def change_username(self, dialog, username):
-        try :
-            self.controller.change_user_username(username)
+
+        result = self.controller.change_user_username(username)
+        if result:
             QMessageBox.information(self, "Success", "username Updated successfully.")
             dialog.accept()  # Ferme la fenêtre après succès
-        except PermissionError as e:
-            QMessageBox.warning(self, "Permission Denied", str(e))
+        else:
+            QMessageBox.information(self, "Error", "username already exist.")
+
 
     @view_authenticated_user
     def change_password_dialog(self):

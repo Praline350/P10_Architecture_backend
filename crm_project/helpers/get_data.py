@@ -20,9 +20,10 @@ def get_roles_without_admin(controller):
 
 
 @is_authenticated_user
-def get_customers_commercial(controller, user):
-    # Retourne les client lié au commercial(user)
+def get_customers_commercial(controller):
+    # Retourne les client lié au commercial(authenticated)
     session = controller.session
+    user = controller.authenticated_user
     commercial_customers = (
         session.query(Customer).filter_by(commercial_contact_id=user.id).all()
     )

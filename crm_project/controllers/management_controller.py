@@ -1,4 +1,3 @@
-from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from crm_project.models import *
@@ -16,6 +15,7 @@ class ManagementController(MainController):
 
     @require_permission('create_contract')
     def create_contract(self, customer_id, **contract_data):
+        """Create a new Contract associate to customer ID with contract data"""
         try:
             customer = self.session.query(Customer).filter_by(id=customer_id).first()
             if not customer:
@@ -37,6 +37,8 @@ class ManagementController(MainController):
 
     @require_permission('create_user')
     def create_user(self,**user_data):
+        """Create a new employee with user data"""
+
         try:
             username = f"{user_data['first_name']}.{user_data['last_name']}"
             role = self.session.query(Role).filter_by(name=user_data['role']).one()
@@ -63,6 +65,8 @@ class ManagementController(MainController):
 
     @require_permission('update_user')
     def update_user(self, user_id, **user_data):
+        """Update an Employee with his ID and user data"""
+
         try:
             user = self.session.query(User).filter_by(id=user_id).first()
             if not user:
@@ -79,6 +83,8 @@ class ManagementController(MainController):
 
     @require_permission('delete_user')
     def delete_user(self, user_id):
+        """Delete an employee with his ID"""
+
         try:
             user = self.session.query(User).filter_by(id=user_id).first()
             if not user:
@@ -93,6 +99,8 @@ class ManagementController(MainController):
 
     @require_permission('update_user')
     def get_user_list(self):
+        """Return a list of all users"""
+
         try:
             users = self.session.query(User).all()
             user_list = [user.to_dict() for user in users]
@@ -104,6 +112,8 @@ class ManagementController(MainController):
         
     @require_permission('update_user')
     def get_users_without_authenticated_user(self):
+        """Return list of user without current authenticated user """
+        
         try:
             users = self.session.query(User).filter(User.id != self.authenticated_user.id).all()
             return users

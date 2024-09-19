@@ -8,7 +8,7 @@ from PySide6.QtCore import Slot
 from PySide6.QtGui import QIcon, Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QCalendarWidget, QLabel, \
                               QPushButton, QCheckBox, QSpinBox, QLCDNumber, QLineEdit, \
-                              QSlider, QProgressBar, QVBoxLayout, QSpacerItem, QSizePolicy, QFormLayout
+                              QSlider, QProgressBar, QVBoxLayout, QSpacerItem, QSizePolicy, QFormLayout, QMessageBox
 
 
 class LoginWidget(QWidget):
@@ -56,10 +56,16 @@ class LoginWidget(QWidget):
         username = self.username_entry.text()
         employee_number = self.employee_number_entry.text()
         password = self.password_entry.text()
-        user = self.controller.login(username, employee_number, password)
-        if user:
-            print("Login successful!")
-            self.controller.show_frame(user)
-        else:
-            print("Login failed.")
+
+        try:
+            user = self.controller.login(username, employee_number, password)
+            if user:
+                print("Login successful!")
+                self.controller.show_frame(user)
+            else:
+                QMessageBox.information(self, "Error", "Username, employee number or password invalid")
+                print("Login failed.")
+        except ValueError as e:
+            QMessageBox.information(self, "Error", "Username, employee number or password invalid")
+            raise ValueError(f"Error {e}")
 

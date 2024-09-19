@@ -210,7 +210,7 @@ class TestCommercialController(BaseIntegrationTest):
 
         with self.assertRaises(ValueError) as context:
             self.commercial_controller.change_user_username('ERROR ERROR')
-        self.assertIn("An error occurred while updating username: ", str(context.exception))
+        self.assertIn("Invalid username format", str(context.exception))
 
     def test_change_password(self):
         self.commercial_controller.authenticated_user = self.commercial_user

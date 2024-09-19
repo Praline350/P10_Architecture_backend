@@ -49,7 +49,8 @@ class TestHelpers(unittest.TestCase):
 
     def test_get_customers_commercial(self):
         user = self.session.query(User).filter_by(username="commercial").one()
-        customers = get_customers_commercial(self, user)
+        self.authenticated_user = user
+        customers = get_customers_commercial(self)
         self.assertIsNotNone(customers)
         self.assertGreater(len(customers), 0)
 

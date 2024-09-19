@@ -1,7 +1,8 @@
-from sqlalchemy.exc import SQLAlchemyError
-
 from crm_project.models import *
 from crm_project.project.permissions import *
+
+from sqlalchemy.exc import IntegrityError
+
 
 class MainController:
     def __init__(self, session, authenticated_user):
@@ -11,6 +12,8 @@ class MainController:
     
     @require_permission('update_contract')
     def update_contract(self, contract_id, **contract_data):
+        """Update a existent contract with his ID and contract data"""
+
         try:
             contract = self.session.query(Contract).filter_by(id=contract_id).one()
             if not contract:
@@ -28,6 +31,8 @@ class MainController:
         
     @require_permission('update_event')
     def update_event(self, event_id, **event_data):
+        """Update an event with his ID and event data"""
+
         try:
             print(event_data['support_contact_id'])
             event = self.session.query(Event).filter_by(id=event_id).one()
@@ -42,6 +47,7 @@ class MainController:
 
     @require_permission('get_events')
     def event_filter(self, **filter_data):
+        """Return event list with apply filters"""
         print(f" filter data : {filter_data}")
         query = self.session.query(Event)
         match self.authenticated_user.role.name.value:
@@ -63,22 +69,29 @@ class MainController:
 
     @is_authenticated_user
     def change_user_username(self, username):
+        """Change current username of auth user"""
+
         try:
             user = self.session.query(User).filter_by(id=self.authenticated_user.id).one()
             user.username = username
             self.session.commit()
             return user
-        except Exception as e:
-            raise ValueError(f"An error occurred while updating username: {str(e)}")
-        
+        except IntegrityError as e:
+            # Annuler la transaction en cas d'erreur d'intégrité
+            self.session.rollback()
+            return False        
     @is_authenticated_user
     def change_user_password(self, old_password, new_password):
+        """Change current password of auth user"""
+
         try:
             user = self.session.query(User).filter_by(id=self.authenticated_user.id).one()
             if user and user.check_password(old_password):
                 user.set_password(new_password)
                 self.session.commit()
                 return True
-        except Exception as e:
-            raise ValueError(f"An unexpected error occurred: {str(e)}")
+        except IntegrityError as e:
+            # Annuler la transaction en cas d'erreur d'intégrité
+            self.session.rollback()
+            raise ValueError(f"An error occurred: {e}")
 

@@ -15,6 +15,7 @@ class AuthenticationController(MainController):
         self.main_window = main_window
         self.login_view = None
 
+        # Map views with controllers
         self.view_mapping = {
             'ADMIN': (AdminView, AdminController),
             'COMMERCIAL': (CommercialView, CommercialController),
@@ -23,7 +24,7 @@ class AuthenticationController(MainController):
         }
 
     def get_view_for_role(self, role_name):
-        """Créer et retourner la vue correspondant au rôle si elle n'existe pas déjà"""
+        """Return view associate to the role"""
 
         try:
             view_class, controller_class = self.view_mapping.get(role_name, (None, None))
@@ -36,6 +37,8 @@ class AuthenticationController(MainController):
 
 
     def login(self, username, employee_number, password):
+        """login user with his employee number, username and password"""
+
         try:
             user = self.session.query(User).filter_by(username=username, employee_number=employee_number).one()
             if user and user.check_password(password):
@@ -47,7 +50,8 @@ class AuthenticationController(MainController):
 
 
     def show_frame(self, user):
-        # self.setup_views()
+        """Select a fram associate to the role"""
+
         role_name = user.role.name.value
         if role_name:
             if hasattr(self, 'login_view'):
@@ -64,6 +68,8 @@ class AuthenticationController(MainController):
                 return False
 
     def show_login_view(self):
+        """Return to the login view"""
+        
         if self.authenticated_user:
             self.authenticated_user = None
         self.login_view = LoginWidget(self.main_window, self)

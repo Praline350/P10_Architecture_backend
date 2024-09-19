@@ -131,8 +131,8 @@ class CommercialView(QWidget):
 
         dialog = mk_create_dialog_window(self, "Update a Customer")
         form_layout = QFormLayout(self)
-        customers = get_customers_commercial(self.controller.authenticated_user, self.controller.session)
-        display_names = get_display_customer_name(customers)
+        customers = get_customers_commercial(self.controller)
+        display_names = get_display_customer_name(self.controller, customers)
 
         data_dict, customer_combobox = mk_create_combox_id_name(self,form_layout, customers, display_names, "Customer")
 
@@ -180,8 +180,8 @@ class CommercialView(QWidget):
         dialog = mk_create_dialog_window(self, "Get Filter Contract")
         form_layout = QFormLayout(self)
 
-        customers = get_customers_list(self.controller.session)
-        display_names = get_display_customer_name(customers)
+        customers = get_customers_list(self.controller)
+        display_names = get_display_customer_name(self.controller, customers)
         data_dict, customer_combobox = mk_create_combox_id_name(self, form_layout, customers, display_names, 'Customer')
         customer_combobox.addItem("All Customers", None)
 
@@ -226,7 +226,6 @@ class CommercialView(QWidget):
         Applique les filtres et affiche la liste des contrats filtrés.
         """
         filter_data = {}
-        print(f"Checkbox état: {filter_data_entries['checkbox'].isChecked()}")
         if filter_data_entries['checkbox'].isChecked():
             filter_data['status'] = True
         else:
@@ -245,7 +244,6 @@ class CommercialView(QWidget):
         filter_data['creation_date_before'] = filter_data_entries['creation_date_before'].date().toPython()
         filter_data['creation_date_after'] = filter_data_entries['creation_date_after'].date().toPython()
 
-        print(filter_data)
         contracts = self.controller.contract_filter(**filter_data)
         self.show_filtered_contracts(contracts)
 
@@ -277,8 +275,8 @@ class CommercialView(QWidget):
         dialog = mk_create_dialog_window(self, 'Create a New Event')
         form_layout = QFormLayout(self)
 
-        customers = get_customers_commercial(self.controller.authenticated_user, self.controller.session)
-        display_name = get_display_customer_name(customers)
+        customers = get_customers_commercial(self.controller)
+        display_name = get_display_customer_name(self.controller, customers)
 
         data_dict, customers_combobox = mk_create_combox_id_name(self, form_layout, customers, display_name, 'Customer')
 
@@ -320,16 +318,12 @@ class CommercialView(QWidget):
         dialog.exec()
 
     def create_event(self, dialog, **event_data):
-        print(event_data)
         try:
             new_event = self.controller.create_event(**event_data)
             QMessageBox.information(self, "Success", f"Event : {new_event.name} create successfully.")
             dialog.accept()  # Ferme la fenêtre après succès
         except ValueError as e:
             QMessageBox.warning(self, "Error", str(e))
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"An error occurred: {e}")
-            print(f'"Error", "An error occurred: {e}"')
 
     def update_contracts_combobox(self, data_dict, combobox):
         """
