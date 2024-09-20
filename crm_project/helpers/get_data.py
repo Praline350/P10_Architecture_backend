@@ -12,7 +12,7 @@ def get_roles_list(controller):
     return roles
 
 
-@is_authenticated_user
+# @is_authenticated_user
 def get_roles_without_admin(controller):
     session = controller.session
     roles = session.query(Role).filter(Role.id != 1).all()  # Admin

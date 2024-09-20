@@ -62,23 +62,27 @@ class ManagementController(MainController):
             self.session.rollback()
             raise ValueError("L'utilisateur avec cet email ou ce nom d'utilisateur existe déjà.")
 
-
     @require_permission('update_user')
     def update_user(self, user_id, **user_data):
         """Update an Employee with his ID and user data"""
 
         try:
+            print(f"ID de l'utilisateur à mettre à jour: {user_id}")
             user = self.session.query(User).filter_by(id=user_id).first()
             if not user:
                 raise ValueError(f"user {user_id} not found")
+            print(f"Utilisateur trouvé: {user.first_name} {user.last_name}")
+            
             for key, value in user_data.items():
                 if hasattr(user, key):
                     setattr(user, key, value)
+                    print(f"Champ mis à jour {key} : {value}")
+
             self.session.commit()
+            print("Mise à jour de l'utilisateur réussie")
             return user
-        except Exception as e:
-            self.session.rollback()  
-            raise ValueError(f"An error occurred while updating the user: {str(e)}")
+        except Exception:
+            raise ValueError('error')
     
 
     @require_permission('delete_user')

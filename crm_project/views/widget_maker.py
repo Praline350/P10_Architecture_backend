@@ -62,7 +62,9 @@ def mk_create_combox_id_name(parent, layout, items, display_names, obj_name):
     data_dict = {}
     combobox = QComboBox()
     for item, display_name in zip(items, display_names):
+        assert isinstance(item.id, (int, str)), f"item.id is not an int or str: {item.id} (type: {type(item.id)})"
         combobox.addItem(display_name, item.id)
+        combobox.setObjectName(f"{obj_name}_combobox")
         data_dict[item.id] = item 
     layout.addRow(f"Select {obj_name}:", combobox)
     return data_dict, combobox
@@ -91,6 +93,7 @@ def mk_create_edit_lines(self, layout, fields_dict):
     field_entries = {}
     for field_name, field_label in fields_dict.items():
         entry = QLineEdit()
+        entry.setObjectName(field_name) 
         layout.addRow(field_label, entry)
         field_entries[field_name] = entry
     return field_entries

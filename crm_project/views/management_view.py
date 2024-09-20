@@ -9,7 +9,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout ,QComboBox, QLineEdit, QMessageBox, QDialog, QFormLayout, QDialogButtonBox, QGridLayout,QSpacerItem, QSizePolicy, QFormLayout
 
 
-@decorate_all_methods(view_authenticated_user)
+# @decorate_all_methods(view_authenticated_user)
 class ManagementView(QWidget):
     def __init__(self, main_window, controller):
         super().__init__()
@@ -81,7 +81,7 @@ class ManagementView(QWidget):
         form_layout = QFormLayout(self)
         # Liste déroulante des clients
         customers = get_customers_list(self.controller)
-        display_names = get_display_customer_name(customers)
+        display_names = get_display_customer_name(self.controller, customers)
         data_dict, customer_combobox = mk_create_combox_id_name(self,form_layout,  customers, display_names, "Customer")
 
         customer_info_label = QLabel()
@@ -115,7 +115,7 @@ class ManagementView(QWidget):
 
         # Appliquer le layout à la fenêtre modale
         dialog.setLayout(form_layout)
-        dialog.exec()
+        dialog.open()
     
     def on_customer_selection_changed(self, label,  combobox, data_dict, index):
         # Récupérer l'ID du client sélectionné à partir de la combobox
@@ -160,9 +160,11 @@ class ManagementView(QWidget):
 
         password_entry = QLineEdit()
         password_entry.setEchoMode(QLineEdit.Password)
+        password_entry.setObjectName('password')
         form_layout.addRow("Password:", password_entry)
         confirm_password_entry = QLineEdit()
         confirm_password_entry.setEchoMode(QLineEdit.Password)
+        confirm_password_entry.setObjectName('confirm_password')
         form_layout.addRow("Confirm Password:", confirm_password_entry)
 
         roles = get_roles_without_admin(self.controller)
@@ -170,6 +172,7 @@ class ManagementView(QWidget):
         data_role_dict, roles_combobox = mk_create_combox_id_name(self, form_layout, roles, display_role_names, "Role")
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.setObjectName('buttons')
 
         def submit_user_data():
             if len(password_entry.text()) < 8:
@@ -194,7 +197,7 @@ class ManagementView(QWidget):
         form_layout.addWidget(buttons)
 
         dialog.setLayout(form_layout)
-        dialog.exec()
+        dialog.open()
 
     def create_user(self, dialog, **user_data):
         """
@@ -217,6 +220,7 @@ class ManagementView(QWidget):
         users = self.controller.get_users_without_authenticated_user()
         display_names = [user.full_name for user in users]
         data_dict, user_combobox = mk_create_combox_id_name(self, form_layout, users, display_names, "User")
+        print(f"Utilisateurs disponibles pour la mise à jour: {display_names}")
         fields_dict = {
             'first_name':'First Name',
             'last_name': 'Last Name',
@@ -227,7 +231,7 @@ class ManagementView(QWidget):
         field_entries = mk_create_edit_lines(self, form_layout, fields_dict)
         roles = get_roles_without_admin(self.controller)
         display_role_names = [role.name.value for role in roles]
-        # print(f" display name {display_role_names}")
+        print(f"Rôles disponibles: {display_role_names}")
         data_role_dict, roles_combobox = mk_create_combox_id_name(self, form_layout, roles, display_role_names, "Role")
         field_entries['role'] = roles_combobox
 
@@ -236,6 +240,7 @@ class ManagementView(QWidget):
         
         # Boutons pour soumettre ou annuler
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.setObjectName('buttons_updated')
         buttons.accepted.connect(lambda: self.update_user(
             dialog,
             user_combobox.currentData(),
@@ -250,7 +255,7 @@ class ManagementView(QWidget):
         form_layout.addWidget(buttons)
 
         dialog.setLayout(form_layout)
-        dialog.exec()
+        dialog.open()
 
     def update_user(self, dialog, user_id, **user_data):
         try:
@@ -258,11 +263,8 @@ class ManagementView(QWidget):
             QMessageBox.information(self, "Success", f"{updated_user.last_name} {updated_user.first_name} updated successfully.")
             dialog.accept()
         except ValueError as e:
-            print(e)
             QMessageBox.warning(self, "Error", str(e))
-        except Exception as e:
-            print(e)
-            QMessageBox.critical(self, "Error", f"An error occurred: {e}")
+
 
     def delete_user_window(self):
         dialog = QDialog(self)
