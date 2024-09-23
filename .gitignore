@@ -2,6 +2,7 @@ venv/
 env/
 htmlcov/
 generate_key.py
+docs/
 
 .coverage_controllers
 .coverage_views

@@ -29,9 +29,8 @@ def run_coverage(test_path=None, use_pytest=False):
         pytest_file_path = os.path.join('crm_project', 'tests', 'tests_integration', 'test_views.py')
         test_command = ["coverage", "run", f"--rcfile={config_file}", "--source=crm_project", f"--data-file={data_file}", "-m", "pytest", pytest_file_path]
         
-        
     else:
-        # Si unittest est utilisé, exécute les tests avec unittest
+        # With unittest
         data_file = ".coverage_controllers"
         config_file = ".coveragerc_controllers"
         if test_path:

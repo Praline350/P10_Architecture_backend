@@ -82,6 +82,7 @@ class ManagementController(MainController):
             print("Mise à jour de l'utilisateur réussie")
             return user
         except Exception:
+            self.session.rollback()
             raise ValueError('error')
     
 

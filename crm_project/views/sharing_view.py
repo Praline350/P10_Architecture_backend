@@ -96,10 +96,11 @@ def update_event_window(self, dialog):
     field_entries['start_date'] = start_date.date().toPython()
     field_entries['end_date'] = end_date.date().toPython()
 
-    event_id = mk_update_fields(self, event_combobox, event_data_dict, field_entries)
+    event_combobox.currentIndexChanged.connect(lambda: mk_update_fields(self, event_combobox,event_data_dict, field_entries))
+    mk_update_fields(self, event_combobox, event_data_dict, field_entries)
 
     buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-    buttons.accepted.connect(lambda: update_event(self, dialog, event_id,
+    buttons.accepted.connect(lambda: update_event(self, dialog, event_combobox.currentData(),
         location=field_entries['location'].text(),
         start_date=field_entries["start_date"],
         end_date=field_entries['end_date'],
@@ -127,7 +128,6 @@ def update_event(self, dialog, event_id, **field_entries):
         print(e)
         QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
-
 def filter_event_window(self, dialog):
     """
         Ouvre une fenêtre modale pour update un evenement 
@@ -142,7 +142,7 @@ def filter_event_window(self, dialog):
             "Only your associate events(Active=Yes)", checked=True)
     else:
         support_checkbox = mk_create_checkbox(self, form_layout,
-            "Filter by associate support (Active=with associate Support)", checked=False)
+            "Filter without associate support (Active=without associate Support)", checked=False)
     start_date_after = mk_create_dateedit(self, form_layout,
         "Event Start Date After:", QDate.currentDate().addDays(-5))
     start_date_before = mk_create_dateedit(self, form_layout,

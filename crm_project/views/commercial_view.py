@@ -144,7 +144,7 @@ class CommercialView(QWidget):
         }
         field_entries = mk_create_edit_lines(self, form_layout, fields_dict)
 
-        customer_combobox.currentIndexChanged.connect(lambda: mk_update_fields(self))
+        customer_combobox.currentIndexChanged.connect(lambda: mk_update_fields(self, customer_combobox, data_dict, field_entries))
 
         # Remplir automatiquement les champs lorsque le client est sélectionné
         mk_update_fields(self, customer_combobox, data_dict, field_entries)
@@ -152,10 +152,10 @@ class CommercialView(QWidget):
         # Boutons pour soumettre ou annuler
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(lambda: self.update_customer(dialog, customer_combobox.currentData(),
-            name=self.field_entries['name'].text(),
-            email=self.field_entries['email'].text(),
-            phone_number=self.field_entries['phone_number'].text(),
-            company_name=self.field_entries['company_name'].text()
+            name=field_entries['name'].text(),
+            email=field_entries['email'].text(),
+            phone_number=field_entries['phone_number'].text(),
+            company_name=field_entries['company_name'].text()
         ))
         buttons.rejected.connect(dialog.reject)
         form_layout.addWidget(buttons)

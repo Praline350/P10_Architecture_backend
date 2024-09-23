@@ -56,7 +56,7 @@ class MainController:
                     query = query.filter_by(support_contact_id=self.authenticated_user.id)
             case _:
                 if filter_data.get('associate_support'):
-                    query = query.filter(Event.support_contact_id.isnot(None))
+                    query = query.filter(Event.support_contact_id.is_(None))
         if filter_data['contract_id'] != None:
             query = query.filter_by(contract_id=filter_data['contract_id'])
         if filter_data.get('start_date_after'):
