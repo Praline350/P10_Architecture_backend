@@ -3,7 +3,7 @@ env/
 htmlcov/
 generate_key.py
 docs/
-settings.admin.py
+settings_admin.py
 
 .coverage_controllers
 .coverage_views
