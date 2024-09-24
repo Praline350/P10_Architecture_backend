@@ -1,5 +1,6 @@
 import os
 
+from pathlib import Path
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import create_engine
 from getpass import getpass
@@ -24,25 +25,48 @@ def decrypt_password(encrypted_password, key):
 # Check password in .env and create it if not
 def setup_env_file():
 
-    load_dotenv()
+    env_file_path = Path(".env")
 
-    if not os.getenv('DB_PASSWORD_ENCRYPTED'):
-        print("No password found, Please enter a data base password")
-        db_password = getpass("DataBase password : ")  
+    # Si le fichier .env n'existe pas
+    if not env_file_path.exists():
+        print("No .env file found, Please enter a database password")
+        db_password = getpass("Database password: ")
 
         secret_key = os.getenv('SECRET_KEY')
         if not secret_key:
             secret_key = generate_key().decode()
+
         encrypted_password = encrypt_password(db_password, secret_key)
 
+        # Écriture dans le fichier .env
         with open(".env", "w") as env_file:
             env_file.write(f"SECRET_KEY={secret_key}\n")
             env_file.write(f"DB_PASSWORD_ENCRYPTED={encrypted_password}\n")
-        
-        print("Encrypted password and secret key wrote in .env file")
-        print("Welcome in Epic Event CRM")
+
+        print("Encrypted password and secret key written in .env file")
+        print("Welcome to Epic Event CRM")
+
+        # Recharger les variables après création du fichier
+        load_dotenv()
+
     else:
-        print("Welcome in Epic Event CRM")
+        load_dotenv()
+
+        if not os.getenv('DB_PASSWORD_ENCRYPTED'):
+            print("No password found in .env, Please enter a database password")
+            db_password = getpass("Database password: ")
+
+            secret_key = os.getenv('SECRET_KEY')
+            if not secret_key:
+                secret_key = generate_key().decode()
+
+            encrypted_password = encrypt_password(db_password, secret_key)
+
+            with open(".env", "a") as env_file:  # Ouvrir le fichier en mode ajout si déjà existant
+                env_file.write(f"DB_PASSWORD_ENCRYPTED={encrypted_password}\n")
+
+            print("Encrypted password written in .env file")
+            print("Welcome to Epic Event CRM")
 
 
 # DB config

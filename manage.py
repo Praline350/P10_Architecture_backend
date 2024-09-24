@@ -1,5 +1,6 @@
 import argparse
 from crm_project.project.settings import *
+from crm_project.project.settings_admin import *
 
 
 if __name__ == "__main__":
