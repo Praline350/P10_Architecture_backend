@@ -18,19 +18,17 @@ Entrées :
 """
 
 from crm_project.helpers.get_data import *
+from crm_project.helpers.front_validation import *
 from crm_project.views import *
 from crm_project.views.widget_maker import *
 from crm_project.views.sharing_view import *
 from crm_project.project.permissions import view_authenticated_user, decorate_all_methods
 
-from datetime import datetime, timedelta
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
-                               QHBoxLayout ,QComboBox, QLineEdit, QMessageBox,
-                               QDialog, QFormLayout, QDialogButtonBox, QGridLayout,
-                               QSpacerItem, QSizePolicy, QFormLayout, QCheckBox,
-                               QSlider, QDateEdit, QTableWidget, QTableWidgetItem,
-                               QRadioButton, QTextEdit
+                               QComboBox, QMessageBox,
+                               QFormLayout, QDialogButtonBox, QGridLayout,
+                               QFormLayout, QTextEdit
                                )
 
 

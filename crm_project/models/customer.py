@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy import event
 from datetime import datetime, timezone
-
+import re
 from crm_project.project.config import Base
 from crm_project.models.mixin_model import BaseModelMixin
 
@@ -27,6 +27,15 @@ class Customer(Base, BaseModelMixin):
 
     def __repr__(self):
         return f"<Customer(name={self.name}, id={self.id}>"
+    
+
+    @validates('email')
+    def validate_email(self, key, email):
+        # Regex pour valider le format de l'email
+        email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+        if not re.match(email_regex, email):
+            raise ValueError("Invalid email format")
+        return email
     
     @validates('phone_number')
     def validate_phone_number(self, key, phone_number):

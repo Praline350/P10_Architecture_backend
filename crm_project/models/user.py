@@ -88,8 +88,23 @@ class User(Base, BaseModelMixin):
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
     
+    @validates('first_name', 'last_name')
+    def validate_name(self, key, name):
+        name = name.replace(" ", "")
+        if not re.match("^[a-zA-ZÀ-ÿ'-]+$", name):
+            raise ValueError(f"Invalid {key}. Only letters, hyphens, and apostrophes are allowed.")
+        return name
+    
+    @validates('email')
+    def validate_email(self, key, email):   
+        email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+        if not re.match(email_regex, email):
+            raise ValueError("Invalid email format")
+        return email
+
     @validates('username')
     def validate_username(self, key, username):
+        username = username.replace(" ", "")
         if not username or not re.match("^[a-zA-Z0-9_.-]+$", username):
             raise ValueError("Invalid username format")
         return username

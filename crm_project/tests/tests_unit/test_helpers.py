@@ -32,7 +32,7 @@ class TestHelpers(unittest.TestCase):
         self.user_support = User(id=2, username='support', employee_number=0, role=role_support)
         customer = Customer(id=1, name="John Doe", email="email@email.com", commercial_contact=self.user_commercial)
         self.contract = Contract(customer=customer, amount_due=100, remaining_amount=100, commercial_contact_id=self.user_commercial.id)
-        event = Event(name="Mariage", contract=self.contract, start_date=datetime.now(),end_date=datetime.now(), location="Bordeaux", attendees=100, support_contact=self.user_support)
+        event = Event(name="Mariage", contract=self.contract, start_date=datetime.now(),end_date=datetime.now() + timedelta(days=1), location="Bordeaux", attendees=100, support_contact=self.user_support)
         self.session.add_all([self.user_commercial, customer, self.contract, event])
         self.session.commit()
         self.authenticated_user = self.user_commercial

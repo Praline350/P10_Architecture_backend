@@ -57,6 +57,22 @@ class TestCustomerModel(BaseUnitTest):
         
         self.assertEqual(str(context.exception), "Phone number must be between 8 and 15 digits")
 
+    def test_validate_email(self):
+        customer = Customer(
+            name="John Doe",
+            email="john.doe@example.com",
+            company_name="Doe Corp",
+            commercial_contact_id=1
+        )
+        valid_email = "john.doe@example.com"
+        result = customer.validate_email("email", valid_email)
+        self.assertEqual(result, valid_email)
+
+        invalid_email = "john.doe@com"
+        with self.assertRaises(ValueError) as context:
+            customer.validate_email("email", invalid_email)
+        self.assertEqual(str(context.exception), "Invalid email format")
+
 
     def test_customer_creation_date(self):
         # Tester la mise en place automatique des dates de création et de mise à jour

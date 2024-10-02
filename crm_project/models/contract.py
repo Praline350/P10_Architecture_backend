@@ -46,6 +46,28 @@ class Contract(Base, BaseModelMixin):
         """Vérifie que le commercial_contact est bien celui associé au customer."""
         if self.commercial_contact_id != self.customer.commercial_contact_id:
             raise ValueError("Le commercial contact doit être le même que celui associé au client.")
+        
+    @validates('id')
+    def validate_id(self, key, contract_id):
+        if len(contract_id) != 5:
+            raise ValueError("Contract ID must be exactly 5 characters long")
+        return contract_id
+
+    @validates('amount_due')
+    def validate_amount(self, key, amount):
+        try:
+            amount = int(amount)
+        except (ValueError, TypeError):
+            raise ValueError("amount must be a positive integer")
+        if amount < 0:
+            raise ValueError(f"{key} must be a positive integer")
+        return amount
+
+    @validates('status')
+    def validate_status(self, key, status):
+        if not isinstance(status, bool):
+            raise ValueError(f"Invalid {key}. Must be a boolean value")
+        return status
 
 @event.listens_for(Contract, 'before_insert')
 def set_creation_date(mapper, connection, target):
