@@ -37,6 +37,7 @@ class AuthenticationController(MainController):
                 self.main_window, controller
             )  # Retourne une nouvelle instance de la vue
         except Exception as e:
+            self.session.rollback()
             raise ValueError(f"Failed to get view for role '{role_name}': {str(e)}")
 
     def login(self, username, employee_number, password):
@@ -49,10 +50,10 @@ class AuthenticationController(MainController):
                 .one()
             )
             if user and user.check_password(password):
-                # print(f"Login successful. User role: {user.role.name}")
                 self.authenticated_user = user
                 return user
         except Exception as e:
+            self.session.rollback()
             raise ValueError(f"An error occurred during login: {str(e)}")
 
     def show_frame(self, user):
@@ -67,7 +68,6 @@ class AuthenticationController(MainController):
             if frame:
                 self.main_window.menuBar().show()
                 self.main_window.setCentralWidget(frame)
-                print("Frame shown successfully.")
                 return True
             else:
                 print(f"No frame found for role: {role_name}")

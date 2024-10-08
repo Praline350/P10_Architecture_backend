@@ -26,6 +26,7 @@ class MainController:
             self.session.commit()
             return contract
         except Exception as e:
+            self.session.rollback()
             raise ValueError(f"An error occurred while updating contract: {str(e)}")
 
     @require_permission("update_event")
@@ -33,7 +34,6 @@ class MainController:
         """Update an event with his ID and event data"""
 
         try:
-            print(event_data["support_contact_id"])
             event = self.session.query(Event).filter_by(id=event_id).one()
             if not event:
                 raise ValueError(f"Contract {event_id} not found.")
@@ -41,13 +41,13 @@ class MainController:
                 setattr(event, key, value)
             self.session.commit()
         except Exception as e:
+            self.session.rollback()
             raise ValueError(f"An error occurred while updating event: {str(e)}")
         return event
 
     @require_permission("get_events")
     def event_filter(self, **filter_data):
         """Return event list with apply filters"""
-        print(f" filter data : {filter_data}")
         query = self.session.query(Event)
         match self.authenticated_user.role.name.value:
             case "SUPPORT":
@@ -80,7 +80,6 @@ class MainController:
             self.session.commit()
             return user
         except IntegrityError as e:
-            # Annuler la transaction en cas d'erreur d'intégrité
             self.session.rollback()
             return False
 
@@ -97,6 +96,5 @@ class MainController:
                 self.session.commit()
                 return True
         except IntegrityError as e:
-            # Annuler la transaction en cas d'erreur d'intégrité
             self.session.rollback()
             raise ValueError(f"An error occurred: {e}")

@@ -27,6 +27,7 @@ class CommercialController(MainController):
             self.session.commit()
             return new_customer
         except Exception as e:
+            self.session.rollback()
             raise ValueError(f"An error occurred while creating the customer: {str(e)}")
 
     @require_permission("update_customer")
@@ -42,6 +43,7 @@ class CommercialController(MainController):
             self.session.commit()
             return customer
         except Exception as e:
+            self.session.rollback()
             raise ValueError(f"An error occurred while updating customer: {str(e)}")
 
     @require_permission("get_contracts")
@@ -88,4 +90,5 @@ class CommercialController(MainController):
             self.session.commit()
             return new_event
         except Exception as e:
+            self.session.rollback()
             raise ValueError(f"An error occurred while create event: {str(e)}")

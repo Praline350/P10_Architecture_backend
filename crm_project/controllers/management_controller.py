@@ -15,6 +15,7 @@ class ManagementController(MainController):
     @require_permission("create_contract")
     def create_contract(self, customer_id, **contract_data):
         """Create a new Contract associate to customer ID with contract data"""
+        
         try:
             customer = self.session.query(Customer).filter_by(id=customer_id).first()
             if not customer:
@@ -69,19 +70,13 @@ class ManagementController(MainController):
         """Update an Employee with his ID and user data"""
 
         try:
-            print(f"ID de l'utilisateur à mettre à jour: {user_id}")
             user = self.session.query(User).filter_by(id=user_id).first()
             if not user:
                 raise ValueError(f"user {user_id} not found")
-            print(f"Utilisateur trouvé: {user.first_name} {user.last_name}")
-
             for key, value in user_data.items():
                 if hasattr(user, key):
                     setattr(user, key, value)
-                    print(f"Champ mis à jour {key} : {value}")
-
             self.session.commit()
-            print("Mise à jour de l'utilisateur réussie")
             return user
         except Exception:
             self.session.rollback()
@@ -113,7 +108,6 @@ class ManagementController(MainController):
             return user_list
         except SQLAlchemyError as e:
             self.session.rollback()
-            # print(f"Error during get users: {e}")
             return None
 
     @require_permission("update_user")
@@ -129,5 +123,4 @@ class ManagementController(MainController):
             return users
         except SQLAlchemyError as e:
             self.session.rollback()
-            # print(f"Error during get users: {e}")
             return None

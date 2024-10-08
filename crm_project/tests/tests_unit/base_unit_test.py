@@ -27,6 +27,7 @@ class BaseUnitTest(unittest.TestCase):
  
     def tearDown(self):
         # Annuler les changements après chaque test   
+        print(f"Test OK: {self.id()}")
         self.session.query(role_permissions).delete()
         self.session.query(User).delete()
         self.session.query(Role).delete()

@@ -17,6 +17,7 @@ class TestHelpers(unittest.TestCase):
         self._populate_data()
 
     def tearDown(self):
+        print(f"Test OK: {self.id()}")
         self.session.close()
         Base.metadata.drop_all(self.engine)
 

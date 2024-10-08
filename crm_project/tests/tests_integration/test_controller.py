@@ -439,7 +439,7 @@ class TestLoginController(BaseIntegrationTest):
     def test_login(self):
         user = self.controller.login('commercial', 450, 'securepassword')
         self.assertEqual(self.controller.authenticated_user, user)
-        print('login Ok')
+
     
 
     def test_login_raises_exception(self):

@@ -5,12 +5,16 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 from datetime import datetime, timedelta
 
+from PySide6.QtCore import qInstallMessageHandler
 from crm_project.project.config import Base
 from crm_project.project.settings import initialize_roles_and_permissions
 from crm_project.controllers import *
 from crm_project.controllers.authentication_controller import *
 from crm_project.models import *
 
+
+def suppress_qt_warnings(*args, **kwargs):
+    pass
 
 class BaseIntegrationTest(unittest.TestCase):
 
@@ -46,6 +50,8 @@ class BaseIntegrationTest(unittest.TestCase):
         self.user_mock.role.name.value = 'ADMIN'
         self.login_view_mock = Mock()
 
+        qInstallMessageHandler(suppress_qt_warnings)
+
         # Données Statiques
         self.customer_data = {
             'name': 'Jean Bon',
@@ -70,6 +76,7 @@ class BaseIntegrationTest(unittest.TestCase):
         }
 
     def tearDown(self):
+        print(f"Test OK: {self.id()}")
         # Annuler les changements après chaque test
         self.session.rollback()   
         # # Suppression des données 

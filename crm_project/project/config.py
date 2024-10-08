@@ -80,7 +80,7 @@ def configure_database():
     database_url = f"mysql+mysqldb://Admin:{db_password}@localhost:3306/epic_event_crm"
 
     # SQLAlchemy setup
-    engine = create_engine(database_url, echo=True)
+    engine = create_engine(database_url, echo=False)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     return SessionLocal(), engine

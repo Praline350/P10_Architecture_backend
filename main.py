@@ -7,6 +7,7 @@ from crm_project.project.config import setup_env_file, configure_database
 from crm_project.controllers.authentication_controller import AuthenticationController
 from crm_project.views.main_window import MainWindow
 
+from PySide6.QtCore import qInstallMessageHandler
 from PySide6.QtWidgets import QApplication
 
 
@@ -26,6 +27,9 @@ def load_stylesheet(file_path):
     """
     with open(file_path, "r") as file:
         return file.read()
+    
+def suppress_qt_warnings(*args, **kwargs):
+    pass
 
 
 def start_application():
@@ -35,6 +39,7 @@ def start_application():
 
     session, engine = configure_database()
     app = QApplication(sys.argv)
+    qInstallMessageHandler(suppress_qt_warnings)
 
     # Get absolute pass of QSS style 
     current_dir = os.path.dirname(os.path.abspath(__file__))
