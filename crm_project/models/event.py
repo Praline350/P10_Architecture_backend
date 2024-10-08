@@ -8,9 +8,10 @@ from datetime import datetime
 from crm_project.project.config import Base
 from crm_project.models.mixin_model import BaseModelMixin
 
+
 # Modèle Event
 class Event(Base, BaseModelMixin):
-    __tablename__ = 'events'
+    __tablename__ = "events"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(150), nullable=False)
@@ -20,20 +21,19 @@ class Event(Base, BaseModelMixin):
     attendees = Column(Integer, nullable=False)
     comment = Column(Text, nullable=True)
 
-    contract_id = Column(CHAR(36), ForeignKey('contracts.id'), nullable=False)
+    contract_id = Column(CHAR(36), ForeignKey("contracts.id"), nullable=False)
     contract = relationship("Contract", back_populates="events")
-    
-    support_contact_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+
+    support_contact_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     support_contact = relationship("User")
 
-
-    @validates('contract_id')
+    @validates("contract_id")
     def validate_contract_id(self, key, contract_id):
         if contract_id is None or contract_id == "":
             raise ValueError("Contract ID cannot be null or empty")
         return contract_id
-    
-    @validates('name')
+
+    @validates("name")
     def validate_name(self, key, name):
         # Supprimer les espaces superflus
         name = name.strip()
@@ -44,8 +44,7 @@ class Event(Base, BaseModelMixin):
             raise ValueError("Invalid event name format")
         return name
 
-
-    @validates('attendees')
+    @validates("attendees")
     def validate_attendees(self, key, attendees):
         try:
             attendees = int(attendees)
@@ -55,17 +54,17 @@ class Event(Base, BaseModelMixin):
         # Vérifier que le nombre de participants est positif
         if attendees < 1:
             raise ValueError("Attendees must be a positive integer")
-        
+
         return attendees
-    
-    @validates('start_date', 'end_date')
+
+    @validates("start_date", "end_date")
     def validate_dates(self, key, date):
-        if key == 'end_date' and self.start_date and date <= self.start_date:
+        if key == "end_date" and self.start_date and date <= self.start_date:
             raise ValueError("End date must be after start date")
 
         return date
-    
-    @validates('location')
+
+    @validates("location")
     def validate_location(self, key, location):
         location = location.strip()
         if not location:

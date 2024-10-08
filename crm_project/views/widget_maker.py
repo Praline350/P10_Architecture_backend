@@ -3,43 +3,59 @@
 import datetime
 
 from PySide6.QtCore import Qt, QDate
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
-                               QHBoxLayout ,QComboBox, QLineEdit, QMessageBox,
-                               QDialog, QFormLayout, QDialogButtonBox, QGridLayout,
-                               QSpacerItem, QSizePolicy, QFormLayout, QCheckBox,
-                               QSlider, QDateEdit, QTableWidget, QTableWidgetItem,
-                               QRadioButton, QButtonGroup, QGroupBox
-                               )
+from PySide6.QtWidgets import (
+    QVBoxLayout,
+    QLabel,
+    QPushButton,
+    QHBoxLayout,
+    QComboBox,
+    QLineEdit,
+    QDialog,
+    QSpacerItem,
+    QSizePolicy,
+    QCheckBox,
+    QSlider,
+    QDateEdit,
+    QTableWidget,
+    QTableWidgetItem,
+    QRadioButton,
+    QButtonGroup,
+    QGroupBox,
+)
 
 
 # Methods de création de fenêtres
 
+
 def mk_setup_widgets(parent, layout, grid, columns, widgets):
     """
-        Setup widgets on the layout's grid
-        args :
-            parent : Fenêtre parent (QWidget)
-            layout : Object QLayout (or child)
-            grid : Object QGrid
-            widgets: List of widgets
+    Setup widgets on the layout's grid
+    args :
+        parent : Fenêtre parent (QWidget)
+        layout : Object QLayout (or child)
+        grid : Object QGrid
+        widgets: List of widgets
     """
     for index, widget in enumerate(widgets):
         row = index // columns
         column = index % columns
         grid.addWidget(widget, row, column)
-        widget.setObjectName('management_buttons')
+        widget.setObjectName("management_buttons")
         layout.addLayout(grid)
-        layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        layout.addSpacerItem(
+            QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        )
         parent.setLayout(layout)
+
 
 def mk_create_dialog_window(parent, title):
     """
-        Create a dialog window on the parent window
-        args :
-            parent : Objects QWidget
-            title : String : 
-        return :
-            Object QDialog    
+    Create a dialog window on the parent window
+    args :
+        parent : Objects QWidget
+        title : String :
+    return :
+        Object QDialog
     """
     # Créer la fenêtre modale
     dialog = QDialog(parent)
@@ -49,29 +65,32 @@ def mk_create_dialog_window(parent, title):
 
 def mk_create_combox_id_name(parent, layout, items, display_names, obj_name):
     """
-        Make a combobox of items and add it to the layout
-        args:
-            layout: Object Qlayout
-            items: Objects List
-            display_names : String List
-            obj_name: String
-        return:
-            data_dict : Dict of field, value to the selected item
-            combobox: Object Qcombobox
+    Make a combobox of items and add it to the layout
+    args:
+        layout: Object Qlayout
+        items: Objects List
+        display_names : String List
+        obj_name: String
+    return:
+        data_dict : Dict of field, value to the selected item
+        combobox: Object Qcombobox
     """
     data_dict = {}
     combobox = QComboBox()
     for item, display_name in zip(items, display_names):
-        assert isinstance(item.id, (int, str)), f"item.id is not an int or str: {item.id} (type: {type(item.id)})"
+        assert isinstance(
+            item.id, (int, str)
+        ), f"item.id is not an int or str: {item.id} (type: {type(item.id)})"
         combobox.addItem(display_name, item.id)
         combobox.setObjectName(f"{obj_name}_combobox")
-        data_dict[item.id] = item 
+        data_dict[item.id] = item
     layout.addRow(f"Select {obj_name}:", combobox)
     return data_dict, combobox
 
+
 def mk_display_current_item(label, item):
     """
-        Display values of item in a label
+    Display values of item in a label
     """
     info_text = "<ul>"
     if item:
@@ -82,18 +101,19 @@ def mk_display_current_item(label, item):
         info_text = f"{item} Info: No {item} selected"
     label.setText(info_text)
 
+
 def mk_create_edit_lines(self, layout, fields_dict):
     """
-        Create a dynamic multi edit line fields
-        args:
-            fields_dict : dict : {'field_name':'Field Label'}
-        return:
-            Dict of field_name and entries of editline 
+    Create a dynamic multi edit line fields
+    args:
+        fields_dict : dict : {'field_name':'Field Label'}
+    return:
+        Dict of field_name and entries of editline
     """
     field_entries = {}
     for field_name, field_label in fields_dict.items():
         entry = QLineEdit()
-        entry.setObjectName(field_name) 
+        entry.setObjectName(field_name)
         layout.addRow(field_label, entry)
         field_entries[field_name] = entry
     return field_entries
@@ -101,19 +121,19 @@ def mk_create_edit_lines(self, layout, fields_dict):
 
 def mk_create_dateedit(self, layout, label, initial_date):
     """
-        Create a QDateEdit
+    Create a QDateEdit
     """
     date_edit = QDateEdit()
-    date_edit.setCalendarPopup(True) 
+    date_edit.setCalendarPopup(True)
     date_edit.setDate(initial_date)
     layout.addRow(label, date_edit)
 
-    return date_edit 
+    return date_edit
 
 
 def mk_create_checkbox(self, layout, title, checked):
     """
-        Create a checkbox
+    Create a checkbox
     """
     checkbox = QCheckBox()
     checkbox.setChecked(checked)
@@ -123,13 +143,13 @@ def mk_create_checkbox(self, layout, title, checked):
 
 def mk_update_fields(parent, combobox, data_dict, field_entries):
     """
-        Update fields of parent form with selected item_combobox values 
-        args:
-            combobox : obj Qcombobox with items who want select
-            data_dict : dict with fields, values of item, return of combobox maker
-            field_entries: dict of fields to update
-        return :
-            ID of selected item
+    Update fields of parent form with selected item_combobox values
+    args:
+        combobox : obj Qcombobox with items who want select
+        data_dict : dict with fields, values of item, return of combobox maker
+        field_entries: dict of fields to update
+    return :
+        ID of selected item
     """
 
     selected_id = combobox.currentData()
@@ -138,7 +158,7 @@ def mk_update_fields(parent, combobox, data_dict, field_entries):
     for field_name, entry in field_entries.items():
         # process according to object type
         if isinstance(entry, QLineEdit):
-            value = getattr(selected_data, field_name, '')
+            value = getattr(selected_data, field_name, "")
             entry.setText(str(value))
         elif isinstance(entry, QCheckBox):
             value = getattr(selected_data, field_name, False)
@@ -154,7 +174,7 @@ def mk_update_fields(parent, combobox, data_dict, field_entries):
 
                 entry.setDate(QDate.currentDate())
         elif isinstance(entry, QComboBox):
-            value = getattr(selected_data, field_name, '')
+            value = getattr(selected_data, field_name, "")
             if value:
                 index = entry.findText(str(value))  # Get index by the text
                 if index >= 0:
@@ -166,13 +186,13 @@ def mk_update_fields(parent, combobox, data_dict, field_entries):
     return selected_id
 
 
-def mk_create_radio_buttons(self, layout,  field_dict, checked_key=None):
+def mk_create_radio_buttons(self, layout, field_dict, checked_key=None):
     """
-        Create group of radio buttons
-        args:
-            field_dict: dict : {'field_name': ['option1', 'option2']}
-        return:
-            : dict : 
+    Create group of radio buttons
+    args:
+        field_dict: dict : {'field_name': ['option1', 'option2']}
+    return:
+        : dict :
     """
     radio_button_entries = {}
     for field_name, options in field_dict.items():
@@ -192,27 +212,30 @@ def mk_create_radio_buttons(self, layout,  field_dict, checked_key=None):
         radio_button_entries[field_name] = radio_group
     return radio_button_entries
 
+
 def get_selected_radio_value(self, radio_button_entries, field_name):
     """
-        Get value of radio buttons
-        args:
-            radio_buttons_entrie: dict :
-            field_name: str : field name for radio buttons access
-        return:
-            : str : selected button text
+    Get value of radio buttons
+    args:
+        radio_buttons_entrie: dict :
+        field_name: str : field name for radio buttons access
+    return:
+        : str : selected button text
     """
     radio_group = radio_button_entries[field_name]
-    checked_button = radio_group.checkedButton() 
+    checked_button = radio_group.checkedButton()
     if checked_button:
-        return checked_button.text()  
+        return checked_button.text()
     return None
-        
 
-def mk_create_slider_with_lineedit(self, layout,  label, min_value, max_value, initial_value):
+
+def mk_create_slider_with_lineedit(
+    self, layout, label, min_value, max_value, initial_value
+):
     """
-        Create a slider with his line edit & connect their values to each other
-        return:
-            obj QSlider, obj QLineEdit
+    Create a slider with his line edit & connect their values to each other
+    return:
+        obj QSlider, obj QLineEdit
     """
     slider = QSlider(Qt.Horizontal)
     slider.setRange(min_value, max_value)
@@ -231,23 +254,25 @@ def mk_create_slider_with_lineedit(self, layout,  label, min_value, max_value, i
             value = int(lineedit.text())
             slider.setValue(value)
         except ValueError:
-            lineedit.setText(str(slider.value()))  
+            lineedit.setText(str(slider.value()))
 
     def update_lineedit_from_slider(value):
         lineedit.setText(str(value))
+
     slider.valueChanged.connect(update_lineedit_from_slider)
     lineedit.textChanged.connect(update_slider_from_lineedit)
     return slider, lineedit
 
+
 def mk_create_table(labels_list, items, attributes_list):
     """
-        Create a QTable for item
-        args:
-            labels_list: str list : Name of tabel
-            items: obj list : 
-            attributes_list: str list: name of field to want display
-        return 
-            obj QTable
+    Create a QTable for item
+    args:
+        labels_list: str list : Name of tabel
+        items: obj list :
+        attributes_list: str list: name of field to want display
+    return
+        obj QTable
     """
     table = QTableWidget()
     table.setColumnCount(len(labels_list))
@@ -257,8 +282,12 @@ def mk_create_table(labels_list, items, attributes_list):
         for col_idx, attribute in enumerate(attributes_list):
             value = getattr(item, attribute, "")
             if isinstance(value, (datetime.date, datetime.datetime)):
-                value = value.strftime('%Y-%m-%d')
-            elif isinstance(value, object) and hasattr(value, 'first_name') and hasattr(value, 'last_name'):
+                value = value.strftime("%Y-%m-%d")
+            elif (
+                isinstance(value, object)
+                and hasattr(value, "first_name")
+                and hasattr(value, "last_name")
+            ):
                 value = f"{value.first_name} {value.last_name}"
 
             table.setItem(row_idx, col_idx, QTableWidgetItem(str(value)))
@@ -266,19 +295,20 @@ def mk_create_table(labels_list, items, attributes_list):
     table.resizeColumnsToContents()
     return table
 
+
 def mk_create_table_window(self, title, header, table):
     """
-        Create dialog window for obj QTable
-        args:
-            title: str : title of dialog window
-            header: str : title of a table
-            table: obj QTable : 
-        return: 
-            obj QDialog
+    Create dialog window for obj QTable
+    args:
+        title: str : title of dialog window
+        header: str : title of a table
+        table: obj QTable :
+    return:
+        obj QDialog
     """
     dialog = QDialog(self)
     dialog.setMinimumSize(900, 400)  # Taille minimale
-    dialog.setMaximumSize(1200, 800) 
+    dialog.setMaximumSize(1200, 800)
     dialog.setWindowTitle(title)
     layout = QVBoxLayout()
     header = QLabel(header)
@@ -289,7 +319,6 @@ def mk_create_table_window(self, title, header, table):
     close_button.clicked.connect(dialog.accept)
     layout.addWidget(close_button)
     dialog.setLayout(layout)
-    dialog.resize(950,400)  # Dimensionner la fenêtre à 600x400 pixels
+    dialog.resize(950, 400)  # Dimensionner la fenêtre à 600x400 pixels
     dialog.exec()
     return dialog
-

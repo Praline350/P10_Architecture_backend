@@ -19,8 +19,6 @@ def get_roles_without_admin(controller):
     return roles
 
 
-
-
 @is_authenticated_user
 def get_customers_commercial(controller):
     # Retourne les client lié au commercial(authenticated)
@@ -51,11 +49,13 @@ def get_customers_list(controller):
     customers = session.query(Customer).all()
     return customers
 
+
 @is_authenticated_user
 def get_events_list(controller):
     session = controller.session
     events = session.query(Event).all()
     return events
+
 
 @is_authenticated_user
 def get_events_support_list(controller, support_id):
