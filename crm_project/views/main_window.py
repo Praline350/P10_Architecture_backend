@@ -1,32 +1,15 @@
-import sys
-
 from crm_project.helpers.get_data import *
 from crm_project.views.widget_maker import *
 from crm_project.project.permissions import view_authenticated_user
 
-from PySide6.QtCore import Slot
-from PySide6.QtGui import QIcon, QAction, Qt
+from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import (
-    QApplication,
     QMainWindow,
     QWidget,
-    QCalendarWidget,
-    QLabel,
-    QPushButton,
-    QCheckBox,
-    QSpinBox,
-    QLCDNumber,
     QLineEdit,
-    QSlider,
-    QProgressBar,
-    QVBoxLayout,
-    QSpacerItem,
-    QSizePolicy,
     QMessageBox,
-    QScrollArea,
-    QDialog,
-    QTableWidget,
-    QTableWidgetItem,
+    QFormLayout,
+    QDialogButtonBox,
 )
 
 
