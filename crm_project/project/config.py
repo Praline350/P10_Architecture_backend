@@ -30,15 +30,12 @@ def setup_env_file():
     if not env_file_path.exists():
         print("No .env file found, Please enter a database password")
         db_password = getpass("Database password: ")
-
         # Toujours générer une clé secrète si elle n'existe pas dans l'environnement
         secret_key = os.getenv("SECRET_KEY")
         if not secret_key:
             secret_key = generate_key().decode()
-
         # Chiffrer le mot de passe
         encrypted_password = encrypt_password(db_password, secret_key)
-
         # Écriture dans le fichier .env
         with open(".env", "w") as env_file:
             env_file.write(f"SECRET_KEY={secret_key}\n")
@@ -55,9 +52,7 @@ def setup_env_file():
             secret_key = os.getenv("SECRET_KEY")
             if not secret_key:
                 secret_key = generate_key().decode()
-
             encrypted_password = encrypt_password(db_password, secret_key)
-
             with open(
                 ".env", "a"
             ) as env_file:  # Ouvrir le fichier en mode ajout si déjà existant

@@ -120,7 +120,6 @@ class User(Base, BaseModelMixin):
 
     @validates("username")
     def validate_username(self, key, username):
-        # username = username.replace(" ", "")
         if not username or not re.match("^[a-zA-Z0-9_.-]+$", username):
             raise ValueError("Invalid username format")
         return username
