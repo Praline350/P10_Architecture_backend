@@ -89,7 +89,8 @@ class User(Base, BaseModelMixin):
     def check_password(self, password):
         # Vérifie le password avec sa valeur hashée dans la db
         return bcrypt.checkpw(
-            password.encode("utf-8"), self.hashed_password.encode("utf-8")
+            password.encode("utf-8"), # Encode le mot de passe utilisateur en bytes
+            self.hashed_password.encode("utf-8") # Encode le mot de passe hashé en bytes
         )
 
     def has_permission(self, permission_name):

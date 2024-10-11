@@ -1,3 +1,5 @@
+from sqlalchemy.exc import SQLAlchemyError  
+
 from crm_project.models import *
 from crm_project.project.permissions import *
 
@@ -25,7 +27,7 @@ class MainController:
                 setattr(contract, key, value)
             self.session.commit()
             return contract
-        except Exception as e:
+        except SQLAlchemyError as e:
             self.session.rollback()
             raise ValueError(f"An error occurred while updating contract: {str(e)}")
 
@@ -40,7 +42,7 @@ class MainController:
             for key, value in event_data.items():
                 setattr(event, key, value)
             self.session.commit()
-        except Exception as e:
+        except SQLAlchemyError as e:
             self.session.rollback()
             raise ValueError(f"An error occurred while updating event: {str(e)}")
         return event
@@ -79,7 +81,7 @@ class MainController:
             user.username = username
             self.session.commit()
             return user
-        except IntegrityError as e:
+        except SQLAlchemyError as e:
             self.session.rollback()
             return False
 
@@ -95,6 +97,6 @@ class MainController:
                 user.set_password(new_password)
                 self.session.commit()
                 return True
-        except IntegrityError as e:
+        except SQLAlchemyError as e:
             self.session.rollback()
             raise ValueError(f"An error occurred: {e}")

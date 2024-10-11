@@ -1,3 +1,5 @@
+from sqlalchemy.exc import SQLAlchemyError  
+
 from crm_project.models import *
 from crm_project.views import *
 from crm_project.views.commercial_view import CommercialView
@@ -36,7 +38,7 @@ class AuthenticationController(MainController):
             return view_class(
                 self.main_window, controller
             )  # Retourne une nouvelle instance de la vue
-        except Exception as e:
+        except SQLAlchemyError  as e:
             self.session.rollback()
             raise ValueError(f"Failed to get view for role '{role_name}': {str(e)}")
 
@@ -52,7 +54,7 @@ class AuthenticationController(MainController):
             if user and user.check_password(password):
                 self.authenticated_user = user
                 return user
-        except Exception as e:
+        except SQLAlchemyError  as e:
             self.session.rollback()
             raise ValueError(f"An error occurred during login: {str(e)}")
 
